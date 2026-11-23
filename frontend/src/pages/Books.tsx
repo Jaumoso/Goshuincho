@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api, newId, type Goshuincho } from '../api'
+import { api, newId, type CategoryProgress, type Goshuincho } from '../api'
+import RouteCard from '../components/RouteProgress'
 import { invalidate } from '../data'
 import { useI18n } from '../i18n'
 
@@ -13,8 +14,15 @@ export default function Books() {
   const [started, setStarted] = useState('')
   const [error, setError] = useState(false)
 
+  const [routes, setRoutes] = useState<CategoryProgress[] | null>(null)
+
   const load = () => api<Goshuincho[]>('/goshuincho').then(setBooks).catch(console.error)
-  useEffect(() => void load(), [])
+  useEffect(() => {
+    void load()
+    api<CategoryProgress[]>('/categories/progress').then(setRoutes).catch(console.error)
+  }, [])
+  const pilgrimages = routes?.filter((r) => r.type === 'pilgrimage') ?? []
+  const others = routes?.filter((r) => r.type !== 'pilgrimage' && r.members > 0) ?? []
 
   async function create(e: React.FormEvent) {
     e.preventDefault()
@@ -75,6 +83,15 @@ export default function Books() {
         <button type="submit">{t('books.create')}</button>
       </form>
       {error && <p className="error">{t('common.error')}</p>}
+      <div className="section"><small>巡礼</small><h2>{t('routes.title')}</h2></div>
+      {routes && pilgrimages.length === 0 && <p className="muted">{t('routes.empty')}</p>}
+      <ul className="list">{pilgrimages.map((r) => <RouteCard key={r.slug} route={r} />)}</ul>
+      {others.length > 0 && (
+        <>
+          <div className="section"><small>テーマ</small><h2>{t('routes.others')}</h2></div>
+          <ul className="list">{others.map((r) => <RouteCard key={r.slug} route={r} />)}</ul>
+        </>
+      )}
     </main>
   )
 }

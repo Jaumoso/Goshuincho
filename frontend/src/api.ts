@@ -127,9 +127,11 @@ export interface PlaceListItem extends PlaceNames {
   mine: MineSummary
 }
 
+export type CategoryType = 'pilgrimage' | 'theme' | 'deity' | 'collection'
+
 export interface CategoryRef {
   slug: string
-  type: string
+  type: CategoryType
   name_ja: string | null
   name_en: string
   name_es: string | null
@@ -139,6 +141,19 @@ export interface CategoryRef {
 export interface Category extends Omit<CategoryRef, 'seq'> {
   id: number
   total_items: number | null
+}
+
+export interface CategoryProgress extends Category {
+  description: string | null
+  members: number
+  total: number
+  done: number
+  visited: number
+  stamped: number
+}
+
+export interface CategoryDetail extends CategoryProgress {
+  places: (PlaceListItem & { seq: number | null })[]
 }
 
 export interface PlaceDetail extends PlaceNames {

@@ -5,7 +5,7 @@ import { KindBadge } from './Icons'
 import { formatWithRelative, localName, placeName, placeSubName } from '../format'
 import { useI18n } from '../i18n'
 
-export default function PlaceRow({ place }: { place: PlaceListItem }) {
+export default function PlaceRow({ place, seq }: { place: PlaceListItem; seq?: number | null }) {
   const { t, locale } = useI18n()
   const prefectures = usePrefectures()
   const pref = prefectures.find((p) => p.id === place.prefecture_id)
@@ -14,6 +14,9 @@ export default function PlaceRow({ place }: { place: PlaceListItem }) {
   return (
     <li>
       <Link to={`/places/${place.id}`} className={`place-row card ${mine.visit_count > 0 ? 'visited' : ''}`}>
+        {seq !== undefined && (
+          <span className={`seq-badge ${mine.visit_count > 0 || mine.stamp_count > 0 ? 'done' : ''}`}>{seq ?? '·'}</span>
+        )}
         <KindBadge kind={place.kind} />
         <span className="grow">
           <strong>{placeName(place, locale)}</strong> {sub && <span className="ja">{sub}</span>}

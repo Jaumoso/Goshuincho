@@ -3,7 +3,7 @@ from datetime import date
 from typing import Literal, Optional
 
 from django.contrib.gis.geos import Point, Polygon
-from django.db.models import BooleanField, Exists, OuterRef, Q
+from django.db.models import BooleanField, Exists, F, OuterRef, Q
 from django.db.models.expressions import RawSQL
 from django.shortcuts import get_object_or_404
 from ninja import Field, Router, Schema, Status
@@ -355,6 +355,84 @@ def clean_names(place: Place):
 @router.get("/categories", response=list[CategoryOut])
 def categories(request):
     return Category.objects.all()
+
+
+class CategoryProgress(CategoryOut):
+    description: Optional[str]
+    members: int
+    total: int
+    done: int
+    visited: int
+    stamped: int
+
+
+class CategoryMember(PlaceListItem):
+    seq: Optional[int]
+
+
+class CategoryDetailOut(CategoryProgress):
+    places: list[CategoryMember]
+
+
+def category_progress(user, categories) -> list[dict]:
+    """Progreso por categoría: un lugar cuenta como hecho con visita en persona o goshuin."""
+    ids = [c.id for c in categories]
+    links = PlaceCategory.objects.filter(category_id__in=ids, place__in=searchable_places(user))
+    members: dict[int, set] = {i: set() for i in ids}
+    for cat_id, place_id in links.values_list("category_id", "place_id"):
+        members[cat_id].add(place_id)
+    all_places = set().union(*members.values()) if members else set()
+    summaries = {
+        s.place_id: s for s in UserPlaceSummary.objects.filter(user=user, place_id__in=all_places)
+    }
+    out = []
+    for c in categories:
+        places = members[c.id]
+        visited = sum(1 for p in places if p in summaries and summaries[p].visit_count)
+        stamped = sum(1 for p in places if p in summaries and summaries[p].stamp_count)
+        done = sum(1 for p in places if p in summaries)
+        out.append(
+            {
+                "id": c.id,
+                "slug": c.slug,
+                "type": c.type,
+                "name_ja": c.name_ja,
+                "name_en": c.name_en,
+                "name_es": c.name_es,
+                "description": c.description,
+                "total_items": c.total_items,
+                "members": len(places),
+                "total": max(c.total_items or 0, len(places)),
+                "done": done,
+                "visited": visited,
+                "stamped": stamped,
+            }
+        )
+    return out
+
+
+@router.get("/categories/progress", response=list[CategoryProgress])
+def categories_progress(request, type: Optional[str] = None):
+    qs = Category.objects.all()
+    if type:
+        qs = qs.filter(type=type)
+    return category_progress(request.user, list(qs))
+
+
+@router.get("/categories/{slug}", response=CategoryDetailOut)
+def category_detail(request, slug: str):
+    user = request.user
+    category = get_object_or_404(Category, slug=slug)
+    data = category_progress(user, [category])[0]
+    links = (
+        PlaceCategory.objects.filter(category=category, place__in=searchable_places(user))
+        .select_related("place")
+        .order_by(F("seq").asc(nulls_last=True), "place__name_romaji", "place__name_ja")
+    )
+    links = list(links)
+    mine = mine_summaries(user, [link.place_id for link in links])
+    data["places"] = [{**list_item(link.place, mine[link.place_id]), "seq": link.seq} for link in links]
+    return data
 
 
 @router.get("/places", response=PlacePage)

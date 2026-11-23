@@ -242,3 +242,29 @@ def test_seed_categories_and_csv_import():
     count = Place.objects.count()
     call_command("import_places_csv", sample=True)
     assert Place.objects.count() == count
+
+
+def test_route_progress_and_order(api, hanako, kyoto, temple):
+    from places.models import Category, PlaceCategory
+
+    route = Category.objects.create(slug="mini-route", type="pilgrimage", name_en="Mini", total_items=3)
+    second = Place.objects.create(kind="temple", name_romaji="Ni-ji", prefecture=kyoto,
+                                  location=Point(135.75, 35.0, srid=4326))
+    hidden = Place.objects.create(kind="temple", name_romaji="Hidden", prefecture=kyoto, status="pending",
+                                  created_by=hanako, location=Point(135.76, 35.0, srid=4326))
+    PlaceCategory.objects.create(place=second, category=route, seq=2)
+    PlaceCategory.objects.create(place=temple, category=route, seq=1)
+    PlaceCategory.objects.create(place=hidden, category=route, seq=3)
+
+    post(api, f"/api/places/{temple.id}/visits", {"visited_on": "2024-01-01"})
+    post(api, f"/api/places/{second.id}/visits", {"kind": "mail", "visited_on": "2024-02-01",
+                                                  "stamps": [{"kind": "goshuin"}]})
+
+    progress = {c["slug"]: c for c in api.get("/api/categories/progress?type=pilgrimage").json()}
+    expected = {"members": 2, "total": 3, "done": 2, "visited": 1, "stamped": 1}
+    assert {k: progress["mini-route"][k] for k in expected} == expected
+
+    detail = api.get("/api/categories/mini-route").json()
+    assert [p["seq"] for p in detail["places"]] == [1, 2]
+    assert detail["places"][0]["mine"]["visit_count"] == 1
+    assert api.get("/api/categories/nope").status_code == 404

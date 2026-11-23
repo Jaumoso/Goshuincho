@@ -431,3 +431,34 @@ body:has(.map-page) { padding-bottom: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ── 巡礼 Pilgrimage routes ────────────── */
+.route-card {
+  display: flex; gap: 0.9rem; align-items: center; color: inherit; text-decoration: none;
+  padding: 0.8rem 0.95rem; border-left: 4px solid var(--kin);
+}
+.route-card.complete { border-left-color: var(--shu); }
+.route-card strong { font-family: var(--mincho); font-weight: 800; font-size: 1.08rem; }
+.route-card .grow { display: grid; gap: 0.35rem; }
+.route-count { flex: none; font-family: var(--mincho); color: var(--shu); line-height: 1; }
+.route-count b { font-size: 1.7rem; font-weight: 800; }
+.route-count small { color: var(--muted); font-weight: 700; }
+.route-count.big b { font-size: 2.6rem; }
+.route-count .hanko { padding: 0.35rem 0.45rem; font-size: 0.95rem; transform: rotate(-6deg); }
+.route-head { display: flex; gap: 1.1rem; align-items: center; padding: 1rem 1.1rem; margin-bottom: 1rem; }
+.route-head .grow { display: grid; gap: 0.45rem; }
+.progress {
+  display: block; height: 0.55rem; border-radius: 99px; overflow: hidden;
+  background: color-mix(in srgb, var(--line) 70%, transparent);
+}
+.progress > span {
+  display: block; height: 100%; border-radius: inherit;
+  background: linear-gradient(90deg, var(--kin), var(--shu));
+  transition: width 0.4s ease;
+}
+.seq-badge {
+  flex: none; display: grid; place-items: center; width: 1.9rem; height: 1.9rem; border-radius: 50%;
+  font-family: var(--mincho); font-weight: 800; font-size: 0.85rem;
+  border: 2px dashed var(--line); color: var(--muted);
+}
+.seq-badge.done { border: 2px solid var(--shu); background: var(--shu); color: #fff; transform: rotate(-8deg); }

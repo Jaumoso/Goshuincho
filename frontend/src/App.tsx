@@ -10,6 +10,7 @@ import Login from './pages/Login'
 import NewPlace from './pages/NewPlace'
 import PlaceDetail from './pages/PlaceDetail'
 import Places from './pages/Places'
+import RouteDetail from './pages/RouteDetail'
 
 // maplibre pesa ~800 kB: solo se descarga al abrir el mapa.
 const MapPage = lazy(() => import('./pages/MapPage'))
@@ -93,6 +94,7 @@ export default function App() {
             <Route path="/map" element={authed(<MapRoute />)} />
             <Route path="/collection" element={authed(<Collection />)} />
             <Route path="/books" element={authed(<Books />)} />
+            <Route path="/routes/:slug" element={authed(<RouteDetail />)} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <TabBar />
