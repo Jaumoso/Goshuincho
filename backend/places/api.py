@@ -13,7 +13,7 @@ from geo.models import Area, Prefecture
 from geo.utils import prefecture_for_point
 from visits.models import UserPlaceSummary, Visit, VisitKind
 
-from .models import Category, Place, PlaceKind, PlaceSource, ReviewStatus, UserPlace
+from .models import Category, Place, PlaceCategory, PlaceKind, PlaceSource, ReviewStatus, UserPlace
 
 router = Router(tags=["places"])
 
@@ -26,6 +26,7 @@ FOLDED_EXPR = (
 MACRONS = str.maketrans("āīūēōâîûêô", "aiueoaiueo")
 MAX_UNVISITED_BBOX_DEG2 = 4.0
 PAGE_MAX = 100
+MAP_MAX = 4000
 
 
 def fold(text: str) -> str:
@@ -208,6 +209,22 @@ class CategoryOut(Schema):
     name_en: str
     name_es: Optional[str]
     total_items: Optional[int]
+
+
+class MapPoint(Schema):
+    id: uuid.UUID
+    kind: str
+    lon: float
+    lat: float
+    state: Literal["visited", "wishlist", "unvisited"]
+    name_ja: Optional[str]
+    name_romaji: Optional[str]
+    name_en: Optional[str]
+
+
+class MapPoints(Schema):
+    items: list[MapPoint]
+    truncated: bool
 
 
 class ErrorOut(Schema):
@@ -407,6 +424,53 @@ def list_places(
     mine = mine_summaries(user, [p.id for p in page])
     next_offset = offset + limit if offset + limit < count else None
     return {"items": [list_item(p, mine[p.id]) for p in page], "count": count, "next_offset": next_offset}
+
+
+@router.get("/places/map", response=MapPoints)
+def map_points(
+    request,
+    bbox: Optional[str] = None,
+    kind: Optional[Literal["shrine", "temple", "station", "site"]] = None,
+    category: Optional[str] = None,
+):
+    """Puntos del mapa: siempre los visitados y en lista de deseos; con `bbox`, también el resto de esa zona."""
+    user = request.user
+    visited = Exists(
+        Visit.objects.filter(user=user, place=OuterRef("pk"), kind=VisitKind.IN_PERSON, deleted_at__isnull=True)
+    )
+    wished = Exists(UserPlace.objects.filter(user=user, place=OuterRef("pk"), wishlist=True))
+    qs = searchable_places(user).filter(location__isnull=False)
+    if kind:
+        qs = qs.filter(kind=kind)
+    if category:
+        qs = qs.filter(Exists(PlaceCategory.objects.filter(place=OuterRef("pk"), category__slug=category)))
+    qs = qs.annotate(visited=visited, wished=wished)
+    cond = Q(visited=True) | Q(wished=True)
+    if bbox:
+        minlon, minlat, maxlon, maxlat = parse_bbox(bbox)
+        if (maxlon - minlon) * (maxlat - minlat) <= MAX_UNVISITED_BBOX_DEG2:
+            cond |= Q(location__intersects=Polygon.from_bbox((minlon, minlat, maxlon, maxlat)))
+    rows = list(
+        qs.filter(cond)
+        .order_by("-visited", "-wished", "id")
+        .values_list("id", "kind", "location", "visited", "wished", "name_ja", "name_romaji", "name_en")[
+            : MAP_MAX + 1
+        ]
+    )
+    items = [
+        {
+            "id": pid,
+            "kind": k,
+            "lon": round(loc.x, 6),
+            "lat": round(loc.y, 6),
+            "state": "visited" if v else "wishlist" if w else "unvisited",
+            "name_ja": ja,
+            "name_romaji": ro,
+            "name_en": en,
+        }
+        for pid, k, loc, v, w, ja, ro, en in rows[:MAP_MAX]
+    ]
+    return {"items": items, "truncated": len(rows) > MAP_MAX}
 
 
 @router.get("/places/similar", response=list[SimilarItem])

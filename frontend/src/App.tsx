@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './auth'
-import { Book, Lantern, Seal, Torii } from './components/Icons'
+import { Book, Lantern, MapIcon, Seal, Torii } from './components/Icons'
 import { I18nProvider, useI18n } from './i18n'
 import Books from './pages/Books'
 import Collection from './pages/Collection'
@@ -10,6 +10,9 @@ import Login from './pages/Login'
 import NewPlace from './pages/NewPlace'
 import PlaceDetail from './pages/PlaceDetail'
 import Places from './pages/Places'
+
+// maplibre pesa ~800 kB: solo se descarga al abrir el mapa.
+const MapPage = lazy(() => import('./pages/MapPage'))
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -48,6 +51,7 @@ function TabBar() {
   const tabs = [
     { to: '/', icon: <Lantern />, label: t('nav.home') },
     { to: '/places', icon: <Torii />, label: t('nav.places') },
+    { to: '/map', icon: <MapIcon />, label: t('nav.map') },
     { to: '/collection', icon: <Seal />, label: t('nav.collection') },
     { to: '/books', icon: <Book />, label: t('nav.books') },
   ]
@@ -60,6 +64,15 @@ function TabBar() {
         </NavLink>
       ))}
     </nav>
+  )
+}
+
+function MapRoute() {
+  const { t } = useI18n()
+  return (
+    <Suspense fallback={<p className="page muted">{t('common.loading')}</p>}>
+      <MapPage />
+    </Suspense>
   )
 }
 
@@ -77,6 +90,7 @@ export default function App() {
             <Route path="/places" element={authed(<Places />)} />
             <Route path="/places/new" element={authed(<NewPlace />)} />
             <Route path="/places/:id" element={authed(<PlaceDetail />)} />
+            <Route path="/map" element={authed(<MapRoute />)} />
             <Route path="/collection" element={authed(<Collection />)} />
             <Route path="/books" element={authed(<Books />)} />
             <Route path="*" element={<Navigate to="/" replace />} />

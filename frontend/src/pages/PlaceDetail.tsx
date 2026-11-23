@@ -117,12 +117,15 @@ export default function PlaceDetail() {
         {place.address && `${place.address} · `}
         {place.website && <><a href={place.website} target="_blank" rel="noreferrer">{t('place.website')}</a> · </>}
         {place.lat != null && (
-          <a href={`https://www.openstreetmap.org/?mlat=${place.lat}&mlon=${place.lon}#map=17/${place.lat}/${place.lon}`} target="_blank" rel="noreferrer">
-            {t('place.map')}
-          </a>
+          <Link to={`/map?place=${place.id}&lat=${place.lat}&lon=${place.lon}`}>{t('place.map')}</Link>
         )}
       </p>
       {place.goshuin_info && <p className="small">{place.goshuin_info}</p>}
+      {place.source === 'osm' && (
+        <p className="small muted">
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">{t('place.osm_data')}</a>
+        </p>
+      )}
 
       <div className="section"><small>参拝記録</small><h2>{t('place.history')}</h2></div>
       {visits.length === 0 && <p className="muted">{t('place.no_history')}</p>}

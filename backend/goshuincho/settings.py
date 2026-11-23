@@ -158,6 +158,7 @@ def WHITENOISE_IMMUTABLE_FILE_TEST(path, url):
 
 
 MEDIA_ROOT = Path(env("MEDIA_ROOT", "/data/media"))
+TILES_DIR = Path(env("TILES_DIR", "/data/tiles"))
 MAX_UPLOAD_MB = int(env("MAX_UPLOAD_MB", "25"))
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024

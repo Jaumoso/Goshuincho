@@ -98,3 +98,10 @@ export function KindBadge({ kind, size = 44 }: { kind: PlaceKind; size?: number 
     </span>
   )
 }
+
+/** 地図 — a folded paper map */
+export const MapIcon = (p: Props) => (
+  <Svg {...p}>
+    <path fillRule="evenodd" d="M2 5.2 8.5 2.5l7 2.6L22 2.4v16.4l-6.5 2.7-7-2.6L2 21.6zM9.5 4.9v13.9l5 1.9V6.8z" />
+  </Svg>
+)

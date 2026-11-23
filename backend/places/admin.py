@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.gis.admin import GISModelAdmin
 
-from .models import Category, Place, PlaceCategory
+from .models import Category, OsmImport, Place, PlaceCategory
 
 
 class PlaceCategoryInline(admin.TabularInline):
@@ -39,3 +39,13 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ["slug", "type", "name_es", "name_en", "total_items"]
     list_filter = ["type"]
     search_fields = ["slug", "name_es", "name_en", "name_ja"]
+
+
+@admin.register(OsmImport)
+class OsmImportAdmin(admin.ModelAdmin):
+    list_display = ["region", "status", "requested_at", "finished_at", "total", "created", "updated", "linked", "missing"]
+    list_filter = ["status", "region"]
+    readonly_fields = [f.name for f in OsmImport._meta.fields]
+
+    def has_add_permission(self, request):
+        return False

@@ -145,3 +145,32 @@ class UserPlace(models.Model):
 
     class Meta:
         db_table = "user_places"
+
+
+class OsmImport(models.Model):
+    class Status(models.TextChoices):
+        QUEUED = "queued", "en cola"
+        RUNNING = "running", "en curso"
+        DONE = "done", "terminada"
+        FAILED = "failed", "fallida"
+
+    region = models.ForeignKey("geo.Region", on_delete=models.CASCADE, related_name="osm_imports")
+    status = models.TextField(choices=Status.choices, default=Status.QUEUED)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    total = models.IntegerField(null=True, blank=True)
+    created = models.IntegerField(null=True, blank=True)
+    updated = models.IntegerField(null=True, blank=True)
+    linked = models.IntegerField(null=True, blank=True)
+    missing = models.IntegerField(null=True, blank=True)
+    error = models.TextField(blank=True, default="")
+
+    class Meta:
+        db_table = "osm_imports"
+        ordering = ["-requested_at"]
+        verbose_name = "importación de OpenStreetMap"
+        verbose_name_plural = "importaciones de OpenStreetMap"
+
+    def __str__(self):
+        return f"{self.region} · {self.get_status_display()}"

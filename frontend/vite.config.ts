@@ -35,6 +35,11 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: { cacheName: 'fonts', expiration: { maxEntries: 300 } },
           },
+          {
+            urlPattern: /\/map\/fonts\//,
+            handler: 'CacheFirst',
+            options: { cacheName: 'map-glyphs', expiration: { maxEntries: 100 } },
+          },
         ],
       },
     }),
@@ -48,6 +53,7 @@ export default defineConfig({
       '/api': backend,
       '/admin': backend,
       '/static': backend,
+      '/tiles': backend,
     },
   },
 })

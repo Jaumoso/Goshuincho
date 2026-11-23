@@ -1,4 +1,6 @@
 # Tests del backend: docker compose -f docker-compose.test.yml run --rm --build tests
+name: goshuincho-test
+
 services:
   tests:
     build:
