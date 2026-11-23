@@ -792,3 +792,42 @@ def stats_detail(request, year: Optional[int] = None):
         "heatmap": [{"date": r["visited_on"], "count": r["n"]} for r in days],
         "years": years,
     }
+
+
+# --- Copia personal -----------------------------------------------------------
+
+
+class ImportOut(Schema):
+    places_created: int
+    places_matched: int
+    visits: int
+    stamps: int
+    media: int
+    goshuincho: int
+
+
+@router.post("/export")
+def export_collection(request):
+    from . import portability
+
+    path = portability.build_export_zip(request.user)
+    handle = open(path, "rb")
+    path.unlink()
+    stamp = timezone.localdate().isoformat()
+    return FileResponse(
+        handle,
+        as_attachment=True,
+        filename=f"goshuincho-{stamp}.zip",
+        content_type="application/zip",
+    )
+
+
+@router.post("/import", response={200: ImportOut, 400: ErrorOut})
+def import_collection(request, file: File[UploadedFile]):
+    from . import portability
+
+    try:
+        stats = portability.import_archive(request.user, file)
+    except portability.ImportError_ as exc:
+        return Status(400, {"detail": str(exc)})
+    return Status(200, stats)

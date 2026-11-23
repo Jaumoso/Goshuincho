@@ -8,6 +8,8 @@ interface Auth {
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   setLocale: (locale: Locale) => Promise<void>
+  update: (me: Me) => void
+  forget: () => void
 }
 
 const AuthContext = createContext<Auth | null>(null)
@@ -47,6 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUiLocale(locale)
         if (user) setUser(await api<Me>('/me', { method: 'PATCH', json: { locale } }))
       },
+      update: setUser,
+      forget: () => setUser(null),
     }),
     [user, loading, adopt, setUiLocale],
   )

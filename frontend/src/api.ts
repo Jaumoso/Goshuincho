@@ -301,3 +301,38 @@ export function uploadMedia(file: File): Promise<MediaOut> {
 export function mediaUrl(id: string, variant: 'thumb' | 'medium' | 'original' = 'thumb'): string {
   return `/api/media/${id}/${variant}`
 }
+
+export interface ImportResult {
+  places_created: number
+  places_matched: number
+  visits: number
+  stamps: number
+  media: number
+  goshuincho: number
+}
+
+/** Descarga la copia personal en ZIP. */
+export async function downloadExport(): Promise<void> {
+  await ensureCsrf()
+  const response = await fetch('/api/export', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'X-CSRFToken': cookie('csrftoken') ?? '' },
+  })
+  if (!response.ok) throw new ApiError(response.status)
+  const name = /filename="?([^";]+)"?/.exec(response.headers.get('Content-Disposition') ?? '')?.[1] ?? 'goshuincho.zip'
+  const url = URL.createObjectURL(await response.blob())
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  document.body.append(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+export function importArchive(file: File): Promise<ImportResult> {
+  const body = new FormData()
+  body.append('file', file)
+  return api<ImportResult>('/import', { method: 'POST', body })
+}

@@ -11,6 +11,7 @@ import NewPlace from './pages/NewPlace'
 import PlaceDetail from './pages/PlaceDetail'
 import Places from './pages/Places'
 import RouteDetail from './pages/RouteDetail'
+import Settings from './pages/Settings'
 import StatsPage from './pages/Stats'
 
 // maplibre pesa ~800 kB: solo se descarga al abrir el mapa.
@@ -26,7 +27,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 }
 
 function Header() {
-  const { user, logout, setLocale } = useAuth()
+  const { user, setLocale } = useAuth()
   const { t, locale } = useI18n()
   if (!user) return null
   return (
@@ -39,9 +40,9 @@ function Header() {
         <option value="es">ES</option>
         <option value="en">EN</option>
       </select>
-      <button className="link" onClick={() => logout()}>
-        {t('nav.logout')}
-      </button>
+      <NavLink to="/settings" className="topbar-link">
+        <span className="ja" aria-hidden>設定</span> {t('nav.settings')}
+      </NavLink>
     </header>
   )
 }
@@ -97,6 +98,7 @@ export default function App() {
             <Route path="/books" element={authed(<Books />)} />
             <Route path="/routes/:slug" element={authed(<RouteDetail />)} />
             <Route path="/stats" element={authed(<StatsPage />)} />
+            <Route path="/settings" element={authed(<Settings />)} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <TabBar />
