@@ -58,7 +58,28 @@ docker compose exec app python manage.py import_places_csv /ruta/lugares.csv
 
 Columnas del CSV: `kind,name_ja,name_romaji,name_en,prefecture,lat,lon,categories`. `kind` es `shrine`, `temple`, `station` o `site`; `prefecture` admite código ISO, id o nombre (si va vacía se deduce de las coordenadas); `categories` son slugs separados por `;`, con orden opcional (`saigoku-kannon:16`). Reimportar actualiza los lugares existentes.
 
-Pantallas de la PWA: inicio con estadísticas y últimas visitas, búsqueda de lugares con filtros, mapa con agrupación por zonas (visitados en 朱, deseados en 金, el resto al acercarse), ficha del lugar con historial y alta rápida de visita + goshuin con foto, colección de sellos, libretas (goshuinchō) y alta de lugares privados.
+Pantallas de la PWA: inicio con estadísticas y últimas visitas, búsqueda de lugares con filtros, mapa con agrupación por zonas (visitados en 朱, deseados en 金, el resto al acercarse), ficha del lugar con historial y alta rápida de visita + goshuin con foto, colección de sellos, libretas (goshuinchō), rutas de peregrinaje con progreso (p. ej. 3/33 del Saigoku), estadísticas (rachas por meses, calendario de visitas, mapa de prefecturas, goshuin por año), alta de lugares privados y ajustes (perfil, contraseña, copia personal y borrado de cuenta).
+
+### Revisión de lugares propuestos
+
+Los lugares que crean los usuarios quedan pendientes y solo los ve quien los creó. En *Lugares › Lugares pendientes de revisión* el administrador los aprueba, los rechaza o los fusiona con un duplicado ya aprobado: la lista sugiere candidatos cercanos con nombre parecido y la fusión mueve visitas, goshuin, listas de deseos y categorías al lugar de destino. El lugar fusionado no se borra (queda como `merged`), así que los enlaces antiguos siguen funcionando.
+
+## Copia personal y migración entre instancias
+
+En *Ajustes › Copia de tus datos* cada usuario descarga un ZIP con `data.json` (visitas, goshuin y sellos, libretas, lista de deseos y notas, lugares propios) y las fotos originales, y puede importarlo en esta u otra instancia (`POST /api/export`, `POST /api/import`). Al importar, cada lugar se busca por id, después por su id de OSM y por último por nombre a menos de 300 m; si no aparece se crea como lugar privado pendiente. La importación conserva los ids y es idempotente: repetirla no duplica nada.
+
+## Copias de seguridad
+
+La copia personal no sustituye a la del servidor. Haz una copia de la base de datos y del volumen de medios, por ejemplo con [restic](https://restic.net/) desde el host:
+
+```sh
+export RESTIC_REPOSITORY=sftp:copias@nas:/goshuincho RESTIC_PASSWORD_FILE=~/.restic-pass
+docker compose exec -T db pg_dump -U goshuin -Fc goshuin > goshuin.dump
+restic backup goshuin.dump "$(docker volume inspect -f '{{ .Mountpoint }}' goshuincho_media)"
+restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --prune
+```
+
+Para restaurar: `restic restore latest --target /tmp/r`, copia los medios al volumen y carga la base con `docker compose exec -T db pg_restore -U goshuin -d goshuin --clean --if-exists < goshuin.dump`. Prueba la restauración al menos una vez. Las teselas (`tiles/`) y los lugares de OSM se pueden regenerar, pero entran en el volcado igualmente.
 
 ## Desarrollo
 
