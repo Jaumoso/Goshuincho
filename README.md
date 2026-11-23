@@ -6,10 +6,14 @@
 A self-hosted progressive web app for logging your visits to Japanese shrines, temples and stations, together with the **goshuin** (御朱印) and stamps you collect there.
 
 <p align="center">
-  <img src="docs/screenshots/home.png" width="200" alt="Home">
-  <img src="docs/screenshots/place.png" width="200" alt="Place detail">
-  <img src="docs/screenshots/collection.png" width="200" alt="Goshuin collection">
-  <img src="docs/screenshots/books.png" width="200" alt="Goshuin books">
+  <img src="docs/screenshots/home.png" width="240" alt="Home">
+  <img src="docs/screenshots/map.png" width="240" alt="Map">
+  <img src="docs/screenshots/place.png" width="240" alt="Place detail">
+</p>
+<p align="center">
+  <img src="docs/screenshots/collection.png" width="240" alt="Goshuin collection">
+  <img src="docs/screenshots/kanji.png" width="240" alt="Kanji reading assist">
+  <img src="docs/screenshots/stats.png" width="240" alt="Statistics">
 </p>
 
 ## Features
