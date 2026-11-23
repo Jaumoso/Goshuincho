@@ -551,14 +551,12 @@ def map_points(
     return {"items": items, "truncated": len(rows) > MAP_MAX}
 
 
-@router.get("/places/similar", response=list[SimilarItem])
-def similar_places(request, name: str, lat: Optional[float] = None, lon: Optional[float] = None):
+def similar_queryset(qs, name: str, lat: Optional[float] = None, lon: Optional[float] = None):
     """Posibles duplicados: nombre parecido cerca del punto, o cualquier lugar a menos de 150 m."""
     from django.contrib.gis.db.models.functions import Distance
     from django.contrib.gis.measure import D
 
     name = name.strip()
-    qs = searchable_places(request.user)
     name_match = RawSQL(
         f"(similarity({NAME_EXPR}, %s) > 0.3 OR {FOLDED_EXPR} LIKE %s)",
         [name, f"%{fold(name)}%" if fold(name) else "\x00"],
@@ -567,9 +565,13 @@ def similar_places(request, name: str, lat: Optional[float] = None, lon: Optiona
     if lat is not None and lon is not None:
         point = Point(lon, lat, srid=4326)
         qs = qs.filter(location__dwithin=(point, D(km=3))).annotate(distance=Distance("location", point))
-        qs = qs.filter(Q(name_match) | Q(distance__lte=150)).order_by("distance")
-    else:
-        qs = qs.filter(name_match).annotate(rank=RawSQL(f"similarity({NAME_EXPR}, %s)", [name])).order_by("-rank")
+        return qs.filter(Q(name_match) | Q(distance__lte=150)).order_by("distance")
+    return qs.filter(name_match).annotate(rank=RawSQL(f"similarity({NAME_EXPR}, %s)", [name])).order_by("-rank")
+
+
+@router.get("/places/similar", response=list[SimilarItem])
+def similar_places(request, name: str, lat: Optional[float] = None, lon: Optional[float] = None):
+    qs = similar_queryset(searchable_places(request.user), name, lat, lon)
     return [
         {
             "id": p.id,

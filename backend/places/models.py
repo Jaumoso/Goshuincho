@@ -174,3 +174,12 @@ class OsmImport(models.Model):
 
     def __str__(self):
         return f"{self.region} · {self.get_status_display()}"
+
+
+class PlaceReview(Place):
+    """Proxy para la cola de revisión del administrador."""
+
+    class Meta:
+        proxy = True
+        verbose_name = "lugar pendiente de revisión"
+        verbose_name_plural = "cola de revisión"

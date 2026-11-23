@@ -1,0 +1,17 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Fusionar lugar</h1>
+<p>Las visitas, goshuin, lista de deseos, favoritos y categorías de <strong>{{ source.display_name }}</strong>
+  ({{ source.get_kind_display }}, {{ source.prefecture }}) pasarán a
+  <strong>{{ target.display_name }}</strong> ({{ target.get_kind_display }}, {{ target.prefecture }}).</p>
+<ul>
+  <li>Origen: {{ source.name_ja|default:"—" }} · {{ source.name_romaji|default:"—" }} · {{ source.name_en|default:"—" }}
+    — {{ visits }} visita(s), creado por {{ source.created_by|default:"—" }}</li>
+  <li>Destino: {{ target.name_ja|default:"—" }} · {{ target.name_romaji|default:"—" }} · {{ target.name_en|default:"—" }}
+    {% if distance %}— a {{ distance }} m{% endif %}</li>
+</ul>
+<form method="post">{% csrf_token %}
+  <input type="submit" value="Sí, fusionar" class="default">
+  <a href="{{ back }}" class="button cancel-link">Cancelar</a>
+</form>
+{% endblock %}

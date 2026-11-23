@@ -291,3 +291,50 @@ def test_stats_detail(api, kyoto, temple):
     assert data["heatmap"] == [{"date": "2024-03-10", "count": 2}]
     assert data["years"] == [2024, 2023]
     assert data["longest_streak_months"] == 1
+
+
+def test_merge_pending_place(api, taro, hanako, kyoto, temple):
+    from places.models import Category, PlaceCategory, UserPlace
+    from places.services import MergeError, merge_place
+
+    dup = Place.objects.create(kind="temple", name_ja="東寺", prefecture=kyoto, status="pending", created_by=taro,
+                               location=Point(135.7478, 34.9807, srid=4326))
+    visit = post(api, f"/api/places/{dup.id}/visits", {"visited_on": "2024-05-01",
+                                                       "stamps": [{"kind": "goshuin"}]}).json()
+    UserPlace.objects.create(user=taro, place=dup, wishlist=True, notes="mía")
+    UserPlace.objects.create(user=taro, place=temple, favorite=True, notes="original")
+    route = Category.objects.create(slug="r", type="pilgrimage", name_en="R")
+    PlaceCategory.objects.create(place=dup, category=route, seq=7)
+    older = Place.objects.create(kind="temple", name_ja="旧", prefecture=kyoto, status="merged", merged_into=dup)
+
+    merge_place(dup, temple)
+
+    dup.refresh_from_db()
+    older.refresh_from_db()
+    assert dup.status == "merged" and dup.merged_into_id == temple.id
+    assert older.merged_into_id == temple.id
+    assert Visit.objects.get(id=visit["id"]).place_id == temple.id
+    assert Stamp.objects.get(visit_id=visit["id"]).place_id == temple.id
+    up = UserPlace.objects.get(user=taro, place=temple)
+    assert up.wishlist and up.favorite and up.notes == "original\n\nmía"
+    assert PlaceCategory.objects.get(place=temple, category=route).seq == 7
+    assert api.get(f"/api/places/{temple.id}").json()["mine"]["stamp_count"] == 1
+    with pytest.raises(MergeError):
+        merge_place(temple, dup)
+
+
+def test_admin_review_queue_merge(kyoto, temple, taro, settings):
+    settings.STORAGES = {**settings.STORAGES, "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}}
+    admin_user = User.objects.create_superuser("root@example.com", "pw-root-12345")
+    client = Client()
+    client.force_login(admin_user)
+    dup = Place.objects.create(kind="temple", name_romaji="Toji", prefecture=kyoto, status="pending",
+                               created_by=taro, location=Point(135.7478, 34.9807, srid=4326))
+    url = f"/admin/places/placereview/{dup.id}/merge/{temple.id}/"
+    listing = client.get("/admin/places/placereview/")
+    assert listing.status_code == 200 and url in listing.content.decode()
+    assert "Sí, fusionar" in client.get(url).content.decode()
+    assert client.post(url).status_code == 302
+    dup.refresh_from_db()
+    assert dup.status == "merged" and dup.merged_into_id == temple.id
