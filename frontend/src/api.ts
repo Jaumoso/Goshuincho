@@ -292,9 +292,10 @@ export function newId(): string {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
 }
 
-export function uploadMedia(file: File): Promise<MediaOut> {
+export function uploadMedia(file: File, id?: string): Promise<MediaOut> {
   const body = new FormData()
   body.append('file', file)
+  if (id) body.append('id', id)
   return api<MediaOut>('/media', { method: 'POST', body })
 }
 

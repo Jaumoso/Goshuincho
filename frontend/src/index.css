@@ -518,3 +518,20 @@ body:has(.map-page) { padding-bottom: 0; }
 hr.dashed { width: 100%; border: 0; border-top: 1.5px dashed var(--line); margin: 0.2rem 0; }
 button.danger { background: var(--sumi); box-shadow: 0 3px 0 #000; }
 button.link.danger { color: var(--shu-deep); padding-left: 0; }
+
+/* ---- offline outbox ---- */
+.topbar-link { position: relative; }
+.outbox-badge {
+  display: inline-grid; place-items: center; min-width: 1.25rem; height: 1.25rem; padding: 0 .3rem;
+  margin-left: .35rem; border-radius: 999px; background: var(--shu, #c8102e); color: #fff;
+  font-size: .72rem; font-weight: 700; line-height: 1;
+}
+.outbox-list { list-style: none; margin: .5rem 0 1rem; padding: 0; display: grid; gap: .5rem; }
+.outbox-list li {
+  display: flex; justify-content: space-between; align-items: center; gap: .75rem;
+  padding: .6rem .75rem; border: 1px dashed currentColor; border-radius: .5rem;
+}
+.outbox-list li.failed { border-style: solid; border-color: var(--shu, #c8102e); }
+.outbox-list li > div:first-child { display: grid; gap: .15rem; min-width: 0; }
+.outbox-list small.error { color: var(--shu, #c8102e); }
+.outbox-actions { display: flex; gap: .4rem; flex-shrink: 0; }

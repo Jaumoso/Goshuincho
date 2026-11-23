@@ -69,7 +69,7 @@ La app es multiusuario: el catálogo de lugares es común, y las visitas, goshui
 | RF-13 | Estadísticas: lugares por prefectura, goshuin por año, rachas y mapa de calor | v1.1 |
 | RF-14 | Exportar e importar datos propios en JSON y ZIP con imágenes | v1.1 |
 | RF-15 | Compartir una colección por enlace de solo lectura | v2 |
-| RF-16 | Uso sin conexión: cola local de visitas, goshuin y fotos que se sincroniza al volver la conexión | v2 |
+| RF-16 | Uso sin conexión: cola local de visitas, goshuin y fotos que se sincroniza al volver la conexión | v2 (hecho) |
 
 **Requisitos no funcionales**
 

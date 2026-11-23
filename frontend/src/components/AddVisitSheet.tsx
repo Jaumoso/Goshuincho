@@ -6,6 +6,7 @@ import {
 import { useBooks } from '../data'
 import { todayIso } from '../format'
 import { useI18n, type MessageKey } from '../i18n'
+import { enqueue, isNetworkError, syncOutbox } from '../outbox'
 import { Camera } from './Icons'
 
 const STAMP_KINDS: StampKind[] = ['goshuin', 'goshuin_limited', 'goshuin_seasonal', 'station_stamp', 'other_stamp']
@@ -17,16 +18,18 @@ type Season = keyof typeof SEASON_MONTH
 
 interface Props {
   placeId: string
+  placeName: string
   /** Si se indica, añade un goshuin a esta visita en lugar de crear otra. */
   visitId?: string
   onClose: () => void
-  onSaved: (visit?: Visit) => void
+  /** `queued` indica que se guardó sin conexión y se enviará después. */
+  onSaved: (visit?: Visit, queued?: boolean) => void
 }
 
-export default function AddVisitSheet({ placeId, visitId, onClose, onSaved }: Props) {
+export default function AddVisitSheet({ placeId, placeName, visitId, onClose, onSaved }: Props) {
   const { t } = useI18n()
   const books = useBooks()
-  const ids = useRef({ visit: newId(), stamp: newId() })
+  const ids = useRef({ visit: newId(), stamp: newId(), media: newId() })
   const today = todayIso()
   const year = Number(today.slice(0, 4))
 
@@ -63,8 +66,10 @@ export default function AddVisitSheet({ placeId, visitId, onClose, onSaved }: Pr
     setFile(f)
     setError(null)
     setUploading(true)
-    const p = uploadMedia(f)
-    p.catch(() => setError('sheet.error_photo')).finally(() => setUploading(false))
+    ids.current.media = newId()
+    const p = uploadMedia(f, ids.current.media)
+    // Sin conexión la foto se guarda con la visita y se sube después.
+    p.catch((err) => !isNetworkError(err) && setError('sheet.error_photo')).finally(() => setUploading(false))
     setUpload(p)
   }
 
@@ -81,41 +86,83 @@ export default function AddVisitSheet({ placeId, visitId, onClose, onSaved }: Pr
   async function save() {
     setSaving(true)
     setError(null)
+    let media: MediaOut | null = null
+    let photoPending = false
+    if (upload) {
+      try {
+        media = await upload
+      } catch (err) {
+        if (!isNetworkError(err)) {
+          setError('sheet.error_photo')
+          setSaving(false)
+          return
+        }
+        photoPending = true
+      }
+    }
+    const stamp = stampKind
+      ? {
+          id: ids.current.stamp,
+          kind: stampKind,
+          medium: medium || null,
+          title: title || null,
+          donation_yen: donation ? Number(donation) : null,
+          goshuincho_id: book || null,
+          media: media ? [{ media_id: media.id }] : [],
+        }
+      : null
+    const stampBody = stamp ? { ...stamp, notes: notes || null } : null
+    const visitBody = {
+      id: ids.current.visit,
+      kind: visitKind,
+      event_location: visitKind === 'event' ? eventLocation || null : null,
+      visited_on: visitedOn(),
+      visited_precision: precision,
+      notes: notes || null,
+      media: !stamp && media ? [media.id] : [],
+      stamps: stamp ? [stamp] : [],
+    }
+
+    async function queue() {
+      await enqueue({
+        id: visitId ? ids.current.stamp : ids.current.visit,
+        type: visitId ? 'stamp' : 'visit',
+        placeId,
+        placeName,
+        visitId,
+        body: visitId ? stampBody! : visitBody,
+        photo: photoPending && file ? file : undefined,
+        photoId: ids.current.media,
+        mediaId: media?.id,
+        photoOn: file ? (stamp ? 'stamp' : 'visit') : null,
+      })
+      void syncOutbox()
+      onSaved(undefined, true)
+    }
+
     try {
-      let media: MediaOut | null = null
-      if (upload) media = await upload
-      const stamp = stampKind
-        ? {
-            id: ids.current.stamp,
-            kind: stampKind,
-            medium: medium || null,
-            title: title || null,
-            donation_yen: donation ? Number(donation) : null,
-            goshuincho_id: book || null,
-            media: media ? [{ media_id: media.id }] : [],
-          }
-        : null
-      if (visitId) {
-        if (stamp) await api(`/visits/${visitId}/stamps`, { method: 'POST', json: { ...stamp, notes: notes || null } })
+      if (visitId && !stampBody) {
         onSaved()
         return
       }
-      const visit = await api<Visit>(`/places/${placeId}/visits`, {
-        method: 'POST',
-        json: {
-          id: ids.current.visit,
-          kind: visitKind,
-          event_location: visitKind === 'event' ? eventLocation || null : null,
-          visited_on: visitedOn(),
-          visited_precision: precision,
-          notes: notes || null,
-          media: !stamp && media ? [media.id] : [],
-          stamps: stamp ? [stamp] : [],
-        },
-      })
-      onSaved(visit)
+      if (photoPending || !navigator.onLine) {
+        await queue()
+        return
+      }
+      if (visitId) {
+        await api(`/visits/${visitId}/stamps`, { method: 'POST', json: stampBody })
+        onSaved()
+        return
+      }
+      onSaved(await api<Visit>(`/places/${placeId}/visits`, { method: 'POST', json: visitBody }))
     } catch (err) {
-      if (err instanceof ApiError && err.detail === 'date_in_future') setError('sheet.error_future')
+      if (isNetworkError(err)) {
+        try {
+          await queue()
+        } catch {
+          setError('sheet.error')
+        }
+      } else if (err instanceof ApiError && err.detail === 'date_in_future') setError('sheet.error_future')
       else if (err instanceof ApiError && (err.status === 413 || err.status === 415)) setError('sheet.error_photo')
       else setError('sheet.error')
     } finally {

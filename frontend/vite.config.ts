@@ -36,6 +36,26 @@ export default defineConfig({
             options: { cacheName: 'fonts', expiration: { maxEntries: 300 } },
           },
           {
+            // fotos ya procesadas: inmutables por id
+            urlPattern: /\/api\/media\/[^/]+\/(thumb|medium)/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'media', expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 60 } },
+          },
+          {
+            // lecturas de la API para consultar sin conexión; siempre se prefiere la red
+            urlPattern: ({ url, request }) =>
+              request.method === 'GET' &&
+              url.pathname.startsWith('/api/') &&
+              !/^\/api\/(auth|export|import|media)\b/.test(url.pathname),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api',
+              networkTimeoutSeconds: 4,
+              expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
             urlPattern: /\/map\/fonts\//,
             handler: 'CacheFirst',
             options: { cacheName: 'map-glyphs', expiration: { maxEntries: 100 } },

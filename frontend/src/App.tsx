@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from 're
 import { AuthProvider, useAuth } from './auth'
 import { Book, Lantern, MapIcon, Seal, Torii } from './components/Icons'
 import { I18nProvider, useI18n } from './i18n'
+import { useOutbox } from './outbox'
 import Books from './pages/Books'
 import Collection from './pages/Collection'
 import Home from './pages/Home'
@@ -29,6 +30,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 function Header() {
   const { user, setLocale } = useAuth()
   const { t, locale } = useI18n()
+  const pending = useOutbox().length
   if (!user) return null
   return (
     <header className="topbar">
@@ -42,6 +44,11 @@ function Header() {
       </select>
       <NavLink to="/settings" className="topbar-link">
         <span className="ja" aria-hidden>設定</span> {t('nav.settings')}
+        {pending > 0 && (
+          <span className="outbox-badge" title={t('offline.pending_title')} aria-label={t('offline.pending_title')}>
+            {pending}
+          </span>
+        )}
       </NavLink>
     </header>
   )

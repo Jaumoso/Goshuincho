@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import { api, ApiError, downloadExport, importArchive, type ImportResult, type Me } from '../api'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
+import { discard, retry, syncOutbox, useOutbox } from '../outbox'
 
 type Notice = { kind: 'ok' | 'error'; text: string } | null
 
@@ -200,11 +201,52 @@ function DangerZone() {
   )
 }
 
+function Outbox() {
+  const { t, locale } = useI18n()
+  const items = useOutbox()
+  if (items.length === 0) return null
+  return (
+    <>
+      <div className="section"><small>未送信</small><h2>{t('offline.title')}</h2></div>
+      <div className="card settings-card">
+        <p className="muted">{navigator.onLine ? t('offline.help_online') : t('offline.help_offline')}</p>
+        <ul className="outbox-list">
+          {items.map((i) => (
+            <li key={i.id} className={i.error ? 'failed' : ''}>
+              <div>
+                <b>{i.placeName}</b>
+                <small>
+                  {t(i.type === 'visit' ? 'offline.kind_visit' : 'offline.kind_stamp')} ·{' '}
+                  {new Date(i.createdAt).toLocaleString(locale)}
+                </small>
+                {i.error && <small className="error">{t('offline.failed', { error: i.error })}</small>}
+              </div>
+              <div className="outbox-actions">
+                {i.error && <button type="button" onClick={() => void retry(i.id)}>{t('offline.retry')}</button>}
+                <button
+                  type="button"
+                  className="danger"
+                  onClick={() => window.confirm(t('offline.discard_confirm')) && void discard(i.id)}
+                >
+                  {t('offline.discard')}
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <button type="button" className="primary" onClick={() => void syncOutbox()}>{t('offline.sync')}</button>
+      </div>
+    </>
+  )
+}
+
 export default function Settings() {
   const { t } = useI18n()
   return (
     <main className="page settings">
       <div className="section"><small>設定</small><h1>{t('settings.title')}</h1></div>
+
+      <Outbox />
 
       <div className="section"><small>名前</small><h2>{t('settings.profile')}</h2></div>
       <Profile />

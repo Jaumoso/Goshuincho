@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api, ApiError, type Locale, type Me } from './api'
 import { useI18n } from './i18n'
+import { clearOfflineCaches, setOutboxUser } from './outbox'
 
 interface Auth {
   user: Me | null
@@ -36,6 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false))
   }, [adopt])
 
+  useEffect(() => setOutboxUser(user?.id ?? null), [user])
+
   const value = useMemo<Auth>(
     () => ({
       user,
@@ -43,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login: async (email, password) => adopt(await api<Me>('/auth/login', { method: 'POST', json: { email, password } })),
       logout: async () => {
         await api('/auth/logout', { method: 'POST' })
+        await clearOfflineCaches()
         setUser(null)
       },
       setLocale: async (locale) => {
@@ -50,7 +54,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (user) setUser(await api<Me>('/me', { method: 'PATCH', json: { locale } }))
       },
       update: setUser,
-      forget: () => setUser(null),
+      forget: () => {
+        void clearOfflineCaches()
+        setUser(null)
+      },
     }),
     [user, loading, adopt, setUiLocale],
   )

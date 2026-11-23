@@ -171,11 +171,12 @@ export default function PlaceDetail() {
       {sheet && (
         <AddVisitSheet
           placeId={place.id}
+          placeName={title}
           visitId={sheet.visitId}
           onClose={() => setSheet(null)}
-          onSaved={() => {
+          onSaved={(_, queued) => {
             setSheet(null)
-            setToast(t('sheet.saved'))
+            setToast(t(queued ? 'offline.saved' : 'sheet.saved'))
             void load()
           }}
         />
