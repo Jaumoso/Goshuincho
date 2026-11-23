@@ -1,25 +1,93 @@
-# Goshuinchō
+# Goshuinchō 御朱印帳
 
-Aplicación selfhosted (PWA) para registrar visitas a santuarios, templos y estaciones de Japón, y los goshuin y sellos conseguidos. La especificación completa está en [`docs/especificacion.md`](docs/especificacion.md).
+A self-hosted progressive web app for logging your visits to Japanese shrines, temples and stations, together with the **goshuin** (御朱印) and stamps you collect there.
 
-## Instalación con Docker
+<p align="center">
+  <img src="docs/screenshots/home.png" width="200" alt="Home">
+  <img src="docs/screenshots/place.png" width="200" alt="Place detail">
+  <img src="docs/screenshots/collection.png" width="200" alt="Goshuin collection">
+  <img src="docs/screenshots/books.png" width="200" alt="Goshuin books">
+</p>
+
+## Features
+
+- **Places from OpenStreetMap:** every shrine, temple and station in Japan, imported by region. Users can propose new places and corrections, which an admin reviews.
+- **Visits and goshuin:** log a visit in a few taps, add a photo of the goshuin and organise them into your goshuinchō books.
+- **Offline map:** a single [PMTiles](https://docs.protomaps.com/pmtiles/) file served by the app itself. There is no tile server and no third-party requests.
+- **Pilgrimage routes:** track your progress, for example 3/33 on the Saigoku Kannon pilgrimage.
+- **Statistics:** monthly streaks, a visit calendar, a prefecture map and goshuin per year.
+- **Kanji reading assist:** transcribe a goshuin's inscription to get furigana, rōmaji and a short glossary, computed locally.
+- **Works offline:** recent data is cached, and visits and photos logged without signal are uploaded once you're back online.
+- **Share your collection** through read-only links that can be revoked.
+- **Your data is portable:** export everything (data and original photos) as a ZIP and import it into another instance.
+- **Multi-user,** with an admin panel. The app is available in English and Spanish; the admin panel is in Spanish only.
+
+## Quick start
+
+You need Docker with Compose and a reverse proxy that terminates HTTPS. The PWA, offline mode and the camera only work over HTTPS (or on `localhost`).
 
 ```sh
-cp .env.example .env   # rellena PUBLIC_URL, SECRET_KEY, DB_PASSWORD, ADMIN_EMAIL y ADMIN_PASSWORD
+git clone https://github.com/Jaumoso/Goshuincho.git && cd Goshuincho
+cp .env.example .env    # fill in PUBLIC_URL, SECRET_KEY, DB_PASSWORD, ADMIN_EMAIL and ADMIN_PASSWORD
 mkdir -p tiles
 docker compose up -d --build
 ```
 
-La app escucha en `127.0.0.1:8000`; ponla detrás de tu proxy inverso (ejemplos de Caddy y nginx en la especificación, sección 6). El servicio `migrate` aplica las migraciones, carga regiones, prefecturas y zonas, y crea el administrador; después arrancan `app` y `worker`.
+The `migrate` service applies database migrations, loads Japan's regions and prefectures, and creates the admin user. After that, `app` and `worker` start, and the app listens on `127.0.0.1:8000`.
 
-- PWA: `/`
-- Administración: `/admin/`
-- API y documentación OpenAPI: `/api/docs`
-- Salud: `/api/health`
+| Path | What |
+|---|---|
+| `/` | The app |
+| `/admin/` | Admin panel |
+| `/api/docs` | API reference (OpenAPI) |
+| `/api/health` | Health check |
 
-### Mapa base (opcional, recomendado)
+> The `postgis/postgis` image is published for amd64 only. On ARM (Apple Silicon, Raspberry Pi) it runs under emulation, or you can set another compatible image in `POSTGIS_IMAGE`.
 
-El mapa usa un único archivo [PMTiles](https://docs.protomaps.com/pmtiles/) servido por la propia app: no hay servidor de teselas ni peticiones a terceros. Extrae Japón del build diario de Protomaps (elige una fecha de [builds.json](https://build-metadata.protomaps.dev/builds.json)):
+### Reverse proxy
+
+The proxy must forward `X-Forwarded-Proto` and allow uploads up to `MAX_UPLOAD_MB`. Its address must also be included in `TRUSTED_PROXIES`.
+
+Caddy:
+
+```
+goshuin.example.com {
+    encode zstd gzip
+    request_body {
+        max_size 25MB
+    }
+    reverse_proxy 127.0.0.1:8000
+}
+```
+
+nginx:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:8000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    client_max_body_size 25m;
+}
+```
+
+### Configuration
+
+| Variable | Required | Description |
+|---|---|---|
+| `PUBLIC_URL` | yes | Public URL of the app, e.g. `https://goshuin.example.com` |
+| `SECRET_KEY`, `DB_PASSWORD` | yes | Long random values, e.g. `openssl rand -base64 48` |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | yes | First admin user, created on startup if it doesn't exist |
+| `TRUSTED_PROXIES` | | IPs or networks of your proxy (default in `.env.example` includes Docker's networks) |
+| `BIND_ADDRESS`, `PORT` | | Where the app listens (default `127.0.0.1:8000`) |
+| `MAX_UPLOAD_MB` | | Upload limit (default 25) |
+| `KEEP_ORIGINAL_EXIF` | | Keep the EXIF data of original photos (default `true`) |
+| `POSTGIS_IMAGE` | | Alternative PostGIS image |
+
+## Base map (optional, recommended)
+
+Extract Japan from a daily Protomaps build. Pick a date from [builds.json](https://build-metadata.protomaps.dev/builds.json):
 
 ```sh
 docker run --rm -v ./tiles:/tiles protomaps/go-pmtiles extract \
@@ -27,98 +95,95 @@ docker run --rm -v ./tiles:/tiles protomaps/go-pmtiles extract \
   --bbox=122.9,24.0,146.0,45.6 --maxzoom=14
 ```
 
-| `--maxzoom` | Tamaño aprox. | Detalle |
+| `--maxzoom` | Approx. size | Detail |
 |---|---|---|
-| 12 | 400 MB | ciudades y carreteras |
-| 13 | 860 MB | calles principales |
-| 14 | 1,7 GB | calles y edificios (recomendado) |
-| 15 | 3,7 GB | máximo |
+| 12 | 400 MB | cities and roads |
+| 13 | 860 MB | main streets |
+| 14 | 1.7 GB | streets and buildings (recommended) |
+| 15 | 3.7 GB | maximum |
 
-Sin el archivo, el mapa funciona igualmente pero sin fondo (solo los puntos) y avisa de que falta.
+Without this file the map still works, but it shows only the places, with no background.
 
-> La imagen `postgis/postgis` solo se publica para amd64. En ARM (Apple Silicon, Raspberry Pi) funciona emulada, o puedes indicar otra imagen compatible con `POSTGIS_IMAGE` en el `.env`.
+## Loading places
 
-## Lugares
+Shrines, temples and stations are imported from OpenStreetMap by region, using the [Geofabrik](https://download.geofabrik.de/asia/japan.html) extracts. These range from 90 MB for Shikoku to about 1 GB for Kantō, and are filtered locally.
 
-Los templos, santuarios y estaciones se importan de OpenStreetMap por región, desde los extractos de [Geofabrik](https://download.geofabrik.de/asia/japan.html) (de 90 MB para Shikoku a ~1 GB para Kantō), filtrados localmente: solo elementos con nombre de `amenity=place_of_worship` sintoístas o budistas y `railway=station`. Desde la administración, en *Geo › Regiones*, selecciona las regiones y lanza «Importar de OpenStreetMap»; el worker las descarga e importa en segundo plano y el progreso queda en *Lugares › Importaciones de OpenStreetMap*. También por línea de comandos:
+To import from the admin panel:
+
+1. Go to *Geografía › Regiones*.
+2. Select the regions and run **Importar de OpenStreetMap** (Import from OpenStreetMap).
+
+The worker downloads and imports them in the background, and you can follow the progress under *Lugares › Importaciones de OpenStreetMap*.
+
+From the command line:
 
 ```sh
-docker compose exec app python manage.py seed --if-empty           # categorías (peregrinaciones, deidades…)
-docker compose exec app python manage.py import_osm kansai shikoku  # o «all»; --file para un .osm.pbf ya descargado
+docker compose exec app python manage.py seed --if-empty           # categories (pilgrimages, deities…)
+docker compose exec app python manage.py import_osm kansai shikoku  # or "all"; --file for a downloaded .osm.pbf
 ```
 
-Reimportar actualiza los lugares por su id de OSM sin tocar los editados a mano (`locally_modified`); los que desaparecen de OSM se marcan como `osm_missing` y nunca se borran. Los lugares que ya existían por CSV o alta manual se enlazan con su elemento de OSM si coinciden tipo y nombre japonés a menos de ~1 km. El romaji que falta en OSM se genera con pykakasi y se marca como generado.
+Re-importing does the following:
 
-Además, o antes de importar de OSM, los lugares se pueden cargar desde CSV:
+- Places are updated by their OSM id.
+- Places edited by hand are never overwritten.
+- Places that disappear from OSM are flagged, not deleted.
+- Missing rōmaji is generated automatically.
+
+### Importing from CSV
+
+You can also load places from a CSV file:
 
 ```sh
-docker compose exec app python manage.py import_places_csv --sample # 36 lugares de ejemplo
-docker compose exec app python manage.py import_places_csv /ruta/lugares.csv
+docker compose exec app python manage.py import_places_csv --sample   # 36 sample places
+docker compose exec app python manage.py import_places_csv /path/places.csv
 ```
 
-Columnas del CSV: `kind,name_ja,name_romaji,name_en,prefecture,lat,lon,categories`. `kind` es `shrine`, `temple`, `station` o `site`; `prefecture` admite código ISO, id o nombre (si va vacía se deduce de las coordenadas); `categories` son slugs separados por `;`, con orden opcional (`saigoku-kannon:16`). Reimportar actualiza los lugares existentes.
+The columns are `kind,name_ja,name_romaji,name_en,prefecture,lat,lon,categories`:
 
-Pantallas de la PWA: inicio con estadísticas y últimas visitas, búsqueda de lugares con filtros, mapa con agrupación por zonas (visitados en 朱, deseados en 金, el resto al acercarse), ficha del lugar con historial y alta rápida de visita + goshuin con foto, colección de sellos, libretas (goshuinchō), rutas de peregrinaje con progreso (p. ej. 3/33 del Saigoku), estadísticas (rachas por meses, calendario de visitas, mapa de prefecturas, goshuin por año), alta de lugares privados y ajustes (perfil, contraseña, copia personal y borrado de cuenta).
+- `kind` is one of `shrine`, `temple`, `station` or `site`.
+- `prefecture` accepts an ISO code, an id or a name. If it is empty, the prefecture is derived from the coordinates.
+- `categories` is a list of slugs separated by `;`, each with an optional order, e.g. `saigoku-kannon:16`.
 
-### Revisión de lugares propuestos
+### Moderation
 
-Los lugares que crean los usuarios quedan pendientes y solo los ve quien los creó. En *Lugares › Lugares pendientes de revisión* el administrador los aprueba, los rechaza o los fusiona con un duplicado ya aprobado: la lista sugiere candidatos cercanos con nombre parecido y la fusión mueve visitas, goshuin, listas de deseos y categorías al lugar de destino. El lugar fusionado no se borra (queda como `merged`), así que los enlaces antiguos siguen funcionando.
+Places created by users stay private until an admin reviews them under *Lugares › Cola de revisión* (review queue). The admin can approve a place, reject it, or merge it into an existing duplicate; nearby places with similar names are suggested. Corrections proposed for approved places appear under *Lugares › Propuestas de corrección*, with a "current → proposed" diff.
 
-### Propuestas de corrección
+## Backups
 
-En la ficha de un lugar aprobado, **Proponer corrección** abre un formulario con los datos actuales (tipo, nombres, dirección, web, goshuin, coordenadas) y un comentario. Solo se envía lo que cambia. En *Lugares › Propuestas de corrección* el administrador ve una tabla «actual → propuesto» y la aplica o rechaza (desde la ficha o en bloque). Al aplicarla, si cambian las coordenadas se recalcula la prefectura, y el lugar queda marcado como modificado localmente para que una reimportación de OSM no deshaga la corrección.
-
-## Copia personal y migración entre instancias
-
-En *Ajustes › Copia de tus datos* cada usuario descarga un ZIP con `data.json` (visitas, goshuin y sellos, libretas, lista de deseos y notas, lugares propios) y las fotos originales, y puede importarlo en esta u otra instancia (`POST /api/export`, `POST /api/import`). Al importar, cada lugar se busca por id, después por su id de OSM y por último por nombre a menos de 300 m; si no aparece se crea como lugar privado pendiente. La importación conserva los ids y es idempotente: repetirla no duplica nada.
-
-## Compartir la colección
-
-En **Ajustes → Compartir colección** se crean enlaces de solo lectura (`/s/<token>`) a toda la colección o a una libreta. Quien tenga el enlace ve fotos, lugares, fechas y títulos de los goshuin, pero nunca notas, donativos ni el email; las páginas llevan `noindex`. Cada enlace muestra cuántas veces se ha abierto y se puede revocar en cualquier momento.
-
-## Lectura del kanji
-
-Cada goshuin puede guardar su inscripción en kanji. Al escribirla, la app sugiere piezas habituales (nombre del lugar, 奉拝, 本尊, fechas…) y muestra la lectura: furigana, rōmaji y un pequeño glosario. Se calcula en el servidor con pykakasi y un glosario propio, sin servicios externos. Es una lectura aproximada: los nombres propios pueden leerse de otra forma. Toca un goshuin en la ficha del lugar para verla o editarla.
-
-## Uso sin conexión
-
-La app guarda las consultas recientes (lugares, visitas, colección y miniaturas) para poder verlas sin cobertura. Las visitas y goshuin que se registran sin conexión, con su foto, quedan en una cola del dispositivo y se envían solos al recuperar la conexión. El número pendiente aparece junto a **Ajustes**, donde se puede forzar el envío, reintentar o descartar lo que el servidor haya rechazado. Al cerrar sesión se borra la caché local.
-
-## Copias de seguridad
-
-La copia personal no sustituye a la del servidor. Haz una copia de la base de datos y del volumen de medios, por ejemplo con [restic](https://restic.net/) desde el host:
+The per-user export doesn't replace server backups. Back up both the database and the `media` volume, for example with [restic](https://restic.net/):
 
 ```sh
-export RESTIC_REPOSITORY=sftp:copias@nas:/goshuincho RESTIC_PASSWORD_FILE=~/.restic-pass
+export RESTIC_REPOSITORY=sftp:backup@nas:/goshuincho RESTIC_PASSWORD_FILE=~/.restic-pass
 docker compose exec -T db pg_dump -U goshuin -Fc goshuin > goshuin.dump
 restic backup goshuin.dump "$(docker volume inspect -f '{{ .Mountpoint }}' goshuincho_media)"
 restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --prune
 ```
 
-Para restaurar: `restic restore latest --target /tmp/r`, copia los medios al volumen y carga la base con `docker compose exec -T db pg_restore -U goshuin -d goshuin --clean --if-exists < goshuin.dump`. Prueba la restauración al menos una vez. Las teselas (`tiles/`) y los lugares de OSM se pueden regenerar, pero entran en el volcado igualmente.
+To restore:
 
-## Desarrollo
+1. Run `restic restore latest --target /tmp/r`.
+2. Copy the media files back into the volume.
+3. Load the database: `docker compose exec -T db pg_restore -U goshuin -d goshuin --clean --if-exists < goshuin.dump`.
 
-Estructura:
+Test a restore at least once.
 
-- `backend/`: Django + django-ninja + GeoDjango, gestionado con [uv](https://docs.astral.sh/uv/).
-- `frontend/`: React + Vite + TypeScript (PWA).
+## Development
 
-GeoDjango necesita GDAL, GEOS y PROJ; si no los tienes instalados, usa los contenedores.
+- `backend/`: Django, django-ninja and GeoDjango, managed with [uv](https://docs.astral.sh/uv/).
+- `frontend/`: React, Vite and TypeScript.
+
+GeoDjango needs GDAL, GEOS and PROJ. If you don't have them installed, use the containers:
 
 ```sh
-# Tests del backend (PostGIS incluido)
-docker compose -f docker-compose.test.yml run --rm --build tests
-
-# Migraciones nuevas
-docker compose -f docker-compose.test.yml run --rm tests python manage.py makemigrations
-
-# Frontend con recarga en caliente, contra el backend en localhost:8000
-cd frontend && npm install && npm run dev
+docker compose -f docker-compose.test.yml run --rm --build tests                          # backend tests (with PostGIS)
+docker compose -f docker-compose.test.yml run --rm tests python manage.py makemigrations  # new migrations
+cd frontend && npm install && npm run dev                                                 # frontend with hot reload, against localhost:8000
 ```
 
-## Datos y atribuciones
+The full functional and technical specification is in [`docs/especificacion.md`](docs/especificacion.md) (in Spanish).
 
-- Contornos de prefecturas: [Natural Earth](https://www.naturalearthdata.com/) (dominio público).
-- Lugares y mapa base: © colaboradores de [OpenStreetMap](https://www.openstreetmap.org/copyright), licencia ODbL; teselas de [Protomaps](https://protomaps.com).
-- Tipografía del mapa: Noto Sans (SIL Open Font License, `frontend/public/map/fonts/OFL.txt`).
+## Data and attribution
+
+- Places and base map: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, ODbL. Tiles by [Protomaps](https://protomaps.com).
+- Prefecture boundaries: [Natural Earth](https://www.naturalearthdata.com/), public domain.
+- Map font: Noto Sans, SIL Open Font License (`frontend/public/map/fonts/OFL.txt`).
