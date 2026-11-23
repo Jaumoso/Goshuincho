@@ -68,6 +68,10 @@ Los lugares que crean los usuarios quedan pendientes y solo los ve quien los cre
 
 En *Ajustes › Copia de tus datos* cada usuario descarga un ZIP con `data.json` (visitas, goshuin y sellos, libretas, lista de deseos y notas, lugares propios) y las fotos originales, y puede importarlo en esta u otra instancia (`POST /api/export`, `POST /api/import`). Al importar, cada lugar se busca por id, después por su id de OSM y por último por nombre a menos de 300 m; si no aparece se crea como lugar privado pendiente. La importación conserva los ids y es idempotente: repetirla no duplica nada.
 
+## Compartir la colección
+
+En **Ajustes → Compartir colección** se crean enlaces de solo lectura (`/s/<token>`) a toda la colección o a una libreta. Quien tenga el enlace ve fotos, lugares, fechas y títulos de los goshuin, pero nunca notas, donativos ni el email; las páginas llevan `noindex`. Cada enlace muestra cuántas veces se ha abierto y se puede revocar en cualquier momento.
+
 ## Uso sin conexión
 
 La app guarda las consultas recientes (lugares, visitas, colección y miniaturas) para poder verlas sin cobertura. Las visitas y goshuin que se registran sin conexión, con su foto, quedan en una cola del dispositivo y se envían solos al recuperar la conexión. El número pendiente aparece junto a **Ajustes**, donde se puede forzar el envío, reintentar o descartar lo que el servidor haya rechazado. Al cerrar sesión se borra la caché local.

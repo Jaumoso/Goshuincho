@@ -1,5 +1,6 @@
-import { useRef, useState, type FormEvent } from 'react'
-import { api, ApiError, downloadExport, importArchive, type ImportResult, type Me } from '../api'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { api, ApiError, downloadExport, importArchive, shareUrl, type ImportResult, type Me, type ShareLink } from '../api'
+import { useBooks } from '../data'
 import { useAuth } from '../auth'
 import { useI18n } from '../i18n'
 import { discard, retry, syncOutbox, useOutbox } from '../outbox'
@@ -89,6 +90,97 @@ function Password() {
       <Message notice={notice} />
       <button type="submit" disabled={busy}>{t('settings.change_password')}</button>
     </form>
+  )
+}
+
+function Sharing() {
+  const { t, locale } = useI18n()
+  const books = useBooks()
+  const [links, setLinks] = useState<ShareLink[] | null>(null)
+  const [book, setBook] = useState('')
+  const [title, setTitle] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [notice, setNotice] = useState<Notice>(null)
+
+  useEffect(() => {
+    api<ShareLink[]>('/share-links').then(setLinks).catch(() => setLinks([]))
+  }, [])
+
+  async function create(e: FormEvent) {
+    e.preventDefault()
+    setBusy(true)
+    setNotice(null)
+    try {
+      const link = await api<ShareLink>('/share-links', {
+        method: 'POST',
+        json: { goshuincho_id: book || null, title: title || null },
+      })
+      setLinks([link, ...(links ?? [])])
+      setTitle('')
+      await copy(link)
+    } catch {
+      setNotice({ kind: 'error', text: t('common.error') })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function copy(link: ShareLink) {
+    const url = shareUrl(link.token)
+    try {
+      if (navigator.share && matchMedia('(pointer: coarse)').matches) await navigator.share({ url })
+      else await navigator.clipboard.writeText(url)
+      setNotice({ kind: 'ok', text: t('share.copied') })
+    } catch {
+      window.prompt(t('share.copy_prompt'), url)
+    }
+  }
+
+  async function remove(link: ShareLink) {
+    if (!window.confirm(t('share.revoke_confirm'))) return
+    await api(`/share-links/${link.id}`, { method: 'DELETE' })
+    setLinks((links ?? []).filter((l) => l.id !== link.id))
+  }
+
+  return (
+    <div className="card settings-card">
+      <p className="muted small">{t('share.help')}</p>
+      <form onSubmit={create}>
+        <label>
+          {t('share.scope')}
+          <select value={book} onChange={(e) => setBook(e.target.value)}>
+            <option value="">{t('share.all')}</option>
+            {books.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
+        </label>
+        <label>
+          {t('share.title_label')}
+          <input maxLength={200} value={title} placeholder={t('share.title_placeholder')} onChange={(e) => setTitle(e.target.value)} />
+        </label>
+        <button className="primary" disabled={busy}>{t('share.create')}</button>
+      </form>
+      <Message notice={notice} />
+      {!!links?.length && (
+        <ul className="outbox-list share-list">
+          {links.map((l) => (
+            <li key={l.id}>
+              <div>
+                <b>{l.title || l.goshuincho_name || t('share.all')}</b>
+                <small>
+                  {l.goshuincho_name ?? t('share.all')} · {t('share.views', { n: String(l.view_count) })}
+                  {l.last_viewed_at && ` · ${new Date(l.last_viewed_at).toLocaleDateString(locale)}`}
+                </small>
+              </div>
+              <div className="outbox-actions">
+                <a href={shareUrl(l.token)} target="_blank" rel="noreferrer">{t('share.open')}</a>
+                <button type="button" onClick={() => void copy(l)}>{t('share.copy')}</button>
+                <button type="button" className="danger" onClick={() => void remove(l)}>{t('share.revoke')}</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 
@@ -253,6 +345,9 @@ export default function Settings() {
 
       <div className="section"><small>合言葉</small><h2>{t('settings.password')}</h2></div>
       <Password />
+
+      <div className="section"><small>共有</small><h2>{t('share.section')}</h2></div>
+      <Sharing />
 
       <div className="section"><small>控え</small><h2>{t('settings.backup')}</h2></div>
       <Backup />

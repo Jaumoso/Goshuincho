@@ -535,3 +535,18 @@ button.link.danger { color: var(--shu-deep); padding-left: 0; }
 .outbox-list li > div:first-child { display: grid; gap: .15rem; min-width: 0; }
 .outbox-list small.error { color: var(--shu, #c8102e); }
 .outbox-actions { display: flex; gap: .4rem; flex-shrink: 0; }
+
+/* ---- shared collection ---- */
+.shared-top { display: flex; align-items: center; gap: .6rem; margin-bottom: 1rem; }
+.shared-top select { margin-left: auto; width: auto; }
+.shared-meta { margin-top: -.5rem; }
+.shared .tile { border: 0; padding: 0; cursor: zoom-in; font: inherit; text-align: left; }
+.shared-viewer { display: grid; place-items: center; padding: 1rem; }
+.shared-viewer figure {
+  margin: 0; max-width: min(36rem, 100%); max-height: 100%; overflow: auto; display: grid; gap: .75rem;
+  background: var(--bg, #14161c); padding: 1rem; border-radius: .75rem; border-top: 4px solid var(--shu);
+}
+.shared-viewer img { width: 100%; border-radius: .4rem; background: #fffdf7; }
+.shared-viewer figcaption { display: grid; gap: .2rem; }
+.shared-viewer figcaption b { font-size: 1.2rem; }
+.share-list .outbox-actions a { align-self: center; }

@@ -337,3 +337,44 @@ export function importArchive(file: File): Promise<ImportResult> {
   body.append('file', file)
   return api<ImportResult>('/import', { method: 'POST', body })
 }
+
+export interface ShareLink {
+  id: string
+  token: string
+  goshuincho_id: string | null
+  goshuincho_name: string | null
+  title: string | null
+  created_at: string
+  last_viewed_at: string | null
+  view_count: number
+}
+
+export interface SharedStamp {
+  id: string
+  kind: StampKind
+  medium: string | null
+  title: string | null
+  event_name: string | null
+  place: { kind: PlaceKind; name_ja: string | null; name_romaji: string | null; name_en: string | null; prefecture_id: number }
+  visited_on: string | null
+  visited_precision: Precision
+  media: string[]
+}
+
+export interface SharedCollection {
+  title: string | null
+  owner: string
+  book: { name: string; description: string | null; started_on: string | null; finished_on: string | null } | null
+  count: number
+  place_count: number
+  items: SharedStamp[]
+  next_offset: number | null
+}
+
+export function shareUrl(token: string): string {
+  return `${location.origin}/s/${token}`
+}
+
+export function sharedMediaUrl(token: string, id: string, variant: 'thumb' | 'medium' = 'thumb'): string {
+  return `/api/shared/${encodeURIComponent(token)}/media/${id}/${variant}`
+}

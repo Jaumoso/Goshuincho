@@ -13,6 +13,7 @@ import PlaceDetail from './pages/PlaceDetail'
 import Places from './pages/Places'
 import RouteDetail from './pages/RouteDetail'
 import Settings from './pages/Settings'
+import Shared from './pages/Shared'
 import StatsPage from './pages/Stats'
 
 // maplibre pesa ~800 kB: solo se descarga al abrir el mapa.
@@ -31,7 +32,8 @@ function Header() {
   const { user, setLocale } = useAuth()
   const { t, locale } = useI18n()
   const pending = useOutbox().length
-  if (!user) return null
+  const shared = useLocation().pathname.startsWith('/s/')
+  if (!user || shared) return null
   return (
     <header className="topbar">
       <NavLink to="/" className="brand">
@@ -57,7 +59,8 @@ function Header() {
 function TabBar() {
   const { user } = useAuth()
   const { t } = useI18n()
-  if (!user) return null
+  const shared = useLocation().pathname.startsWith('/s/')
+  if (!user || shared) return null
   const tabs = [
     { to: '/', icon: <Lantern />, label: t('nav.home') },
     { to: '/places', icon: <Torii />, label: t('nav.places') },
@@ -96,6 +99,7 @@ export default function App() {
           <Header />
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/s/:token" element={<Shared />} />
             <Route path="/" element={authed(<Home />)} />
             <Route path="/places" element={authed(<Places />)} />
             <Route path="/places/new" element={authed(<NewPlace />)} />

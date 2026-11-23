@@ -204,3 +204,32 @@ class UserPlaceSummary(models.Model):
     class Meta:
         managed = False
         db_table = "user_place_summary"
+
+
+def new_share_token() -> str:
+    import secrets
+
+    return secrets.token_urlsafe(24)
+
+
+class ShareLink(models.Model):
+    """Enlace público de solo lectura a la colección de goshuin (entera o de una libreta)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DB_CASCADE, related_name="share_links")
+    token = models.TextField(unique=True, default=new_share_token)
+    goshuincho = models.ForeignKey(
+        Goshuincho, null=True, blank=True, on_delete=models.DB_CASCADE, related_name="share_links"
+    )
+    title = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_viewed_at = models.DateTimeField(null=True, blank=True)
+    view_count = models.IntegerField(default=0)
+
+    class Meta:
+        db_table = "share_links"
+        verbose_name = "enlace compartido"
+        verbose_name_plural = "enlaces compartidos"
+
+    def __str__(self):
+        return self.title or str(self.id)
