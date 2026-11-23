@@ -6,6 +6,7 @@ import {
 import { useBooks } from '../data'
 import { todayIso } from '../format'
 import { useI18n, type MessageKey } from '../i18n'
+import { Camera } from './Icons'
 
 const STAMP_KINDS: StampKind[] = ['goshuin', 'goshuin_limited', 'goshuin_seasonal', 'station_stamp', 'other_stamp']
 const MEDIUMS: Medium[] = ['jikigaki', 'kakioki', 'stamped_paper', 'digital', 'other']
@@ -134,7 +135,7 @@ export default function AddVisitSheet({ placeId, visitId, onClose, onSaved }: Pr
           void save()
         }}
       >
-        <h2>{t(visitId ? 'place.add_stamp' : 'sheet.title')}</h2>
+        <div className="section" style={{ margin: 0 }}><small>{visitId ? '御朱印' : '参拝記録'}</small><h2>{t(visitId ? 'place.add_stamp' : 'sheet.title')}</h2></div>
 
         {!visitId && (
           <label>
@@ -161,7 +162,7 @@ export default function AddVisitSheet({ placeId, visitId, onClose, onSaved }: Pr
         )}
 
         <div className="photo-field">
-          {preview ? <img src={preview} alt="" /> : <span className="photo-placeholder">📷</span>}
+          {preview ? <img src={preview} alt="" /> : <span className="photo-placeholder"><Camera size={28} /></span>}
           <label className="button secondary">
             {t(file ? 'sheet.photo_change' : 'sheet.photo_add')}
             <input

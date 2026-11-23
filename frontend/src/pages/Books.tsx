@@ -4,6 +4,8 @@ import { api, newId, type Goshuincho } from '../api'
 import { invalidate } from '../data'
 import { useI18n } from '../i18n'
 
+const COVERS = ['#c8321a', '#1f3557', '#5d7d34', '#7a2e4d', '#1b1714', '#b7862f']
+
 export default function Books() {
   const { t } = useI18n()
   const [books, setBooks] = useState<Goshuincho[] | null>(null)
@@ -43,29 +45,28 @@ export default function Books() {
 
   return (
     <main className="page">
-      <h1>{t('books.title')}</h1>
+      <div className="section"><small>御朱印帳</small><h1>{t('books.title')}</h1></div>
       {books?.length === 0 && <p className="muted">{t('books.empty')}</p>}
-      <ul className="list">
-        {books?.map((b) => (
-          <li key={b.id} className="card row wrap">
-            <span className="grow">
-              <Link to={`/collection?book=${b.id}`}><strong>📕 {b.name}</strong></Link>
-              <br />
-              <span className="muted small">
-                {t('place.stamps_n', { n: String(b.stamp_count) })}
-                {b.started_on && ` · ${t('books.started')} ${b.started_on}`}
-              </span>
-            </span>
-            <label className="inline small">
-              {t('books.finished')}
-              <input type="date" value={b.finished_on ?? ''} onChange={(e) => void finish(b, e.target.value)} />
-            </label>
-            <button className="link small" onClick={() => void remove(b)}>{t('books.delete')}</button>
+      <ul className="books">
+        {books?.map((b, i) => (
+          <li key={b.id}>
+            <Link to={`/collection?book=${b.id}`} className="cover" style={{ '--c': COVERS[i % COVERS.length] } as React.CSSProperties}>
+              <span className="daisen">{b.name}</span>
+              <span className="count"><span className="mini-seal">印 {b.stamp_count}</span></span>
+            </Link>
+            <div className="book-meta">
+              {b.started_on && <span>{t('books.started')} {b.started_on}</span>}
+              <label className="inline">
+                {t('books.finished')}
+                <input type="date" value={b.finished_on ?? ''} onChange={(e) => void finish(b, e.target.value)} />
+              </label>
+              <button className="link small" style={{ justifySelf: 'start', padding: 0 }} onClick={() => void remove(b)}>{t('books.delete')}</button>
+            </div>
           </li>
         ))}
       </ul>
-      <h2>{t('books.new')}</h2>
-      <form className="row wrap" onSubmit={(e) => void create(e)}>
+      <div className="section"><small>新しい御朱印帳</small><h2>{t('books.new')}</h2></div>
+      <form className="card row wrap" onSubmit={(e) => void create(e)}>
         <input placeholder={t('books.name')} value={name} maxLength={100} onChange={(e) => setName(e.target.value)} required />
         <label className="inline small">
           {t('books.started')}

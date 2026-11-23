@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './auth'
+import { Book, Lantern, Seal, Torii } from './components/Icons'
 import { I18nProvider, useI18n } from './i18n'
 import Books from './pages/Books'
 import Collection from './pages/Collection'
@@ -25,7 +26,10 @@ function Header() {
   if (!user) return null
   return (
     <header className="topbar">
-      <NavLink to="/" className="brand">Goshuinchō</NavLink>
+      <NavLink to="/" className="brand">
+        <span className="hanko vertical logo" aria-hidden>朱印</span>
+        <b>Goshuinchō</b>
+      </NavLink>
       <select aria-label={t('nav.language')} value={locale} onChange={(e) => setLocale(e.target.value as 'es' | 'en')}>
         <option value="es">ES</option>
         <option value="en">EN</option>
@@ -42,16 +46,16 @@ function TabBar() {
   const { t } = useI18n()
   if (!user) return null
   const tabs = [
-    { to: '/', icon: '🏠', label: t('nav.home') },
-    { to: '/places', icon: '⛩️', label: t('nav.places') },
-    { to: '/collection', icon: '印', label: t('nav.collection') },
-    { to: '/books', icon: '📕', label: t('nav.books') },
+    { to: '/', icon: <Lantern />, label: t('nav.home') },
+    { to: '/places', icon: <Torii />, label: t('nav.places') },
+    { to: '/collection', icon: <Seal />, label: t('nav.collection') },
+    { to: '/books', icon: <Book />, label: t('nav.books') },
   ]
   return (
     <nav className="tabbar">
       {tabs.map((tab) => (
         <NavLink key={tab.to} to={tab.to} end={tab.to === '/' || tab.to === '/places'}>
-          <span aria-hidden>{tab.icon}</span>
+          <span className="tab-icon">{tab.icon}</span>
           {tab.label}
         </NavLink>
       ))}

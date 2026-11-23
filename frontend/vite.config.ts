@@ -18,8 +18,8 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         display: 'standalone',
-        background_color: '#faf7f2',
-        theme_color: '#c73e1d',
+        background_color: '#f5eedf',
+        theme_color: '#e03a1e',
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -29,9 +29,20 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/admin/, /^\/static\//, /^\/media\//, /^\/tiles\//],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/.*\.woff2?$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'fonts', expiration: { maxEntries: 300 } },
+          },
+        ],
       },
     }),
   ],
+  build: {
+    // fonts are split by unicode-range; inlining them would bloat the CSS
+    assetsInlineLimit: (file) => (/\.woff2?$/.test(file) ? false : undefined),
+  },
   server: {
     proxy: {
       '/api': backend,

@@ -63,4 +63,3 @@ export function localName(item: { name_es?: string | null; name_en: string }, lo
   return (locale === 'es' && item.name_es) || item.name_en
 }
 
-export const KIND_ICON = { shrine: '⛩️', temple: '🛕', station: '🚉', site: '📍' } as const

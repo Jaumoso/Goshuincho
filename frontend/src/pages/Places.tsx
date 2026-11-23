@@ -5,6 +5,7 @@ import PlaceRow from '../components/PlaceRow'
 import { useCategories, usePrefectures, useRegions } from '../data'
 import { localName } from '../format'
 import { useI18n } from '../i18n'
+import { Search } from '../components/Icons'
 
 const FILTERS = ['q', 'kind', 'prefecture', 'category', 'state'] as const
 
@@ -62,14 +63,18 @@ export default function Places() {
 
   return (
     <main className="page">
-      <input
+      <div className="section"><small>寺社を探す</small><h1>{t('nav.places')}</h1></div>
+      <label className="search-field">
+        <Search size={22} />
+        <input
         type="search"
-        className="search"
         placeholder={t('places.search')}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         autoFocus
+        aria-label={t('places.search')}
       />
+      </label>
       <div className="filters">
         <select value={params.get('kind') ?? ''} onChange={(e) => update('kind', e.target.value)}>
           <option value="">{t('places.all_kinds')}</option>
@@ -101,7 +106,7 @@ export default function Places() {
         </select>
       </div>
       {!page && <p className="muted">{t('common.loading')}</p>}
-      {page && <p className="muted small">{t('places.count', { n: String(page.count) })}</p>}
+      {page && <p className="count">{t('places.count', { n: String(page.count) })}</p>}
       {page?.count === 0 && <p className="muted">{t('places.none')}</p>}
       <ul className="list">
         {page?.items.map((p) => <PlaceRow key={p.id} place={p} />)}
@@ -110,7 +115,7 @@ export default function Places() {
         <button className="secondary wide" disabled={loadingMore} onClick={() => void more()}>{t('places.more')}</button>
       )}
       <p>
-        <Link to="/places/new">＋ {t('places.new')}</Link>
+        <Link className="button secondary" to="/places/new">＋ {t('places.new')}</Link>
       </p>
     </main>
   )

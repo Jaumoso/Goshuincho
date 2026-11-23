@@ -40,7 +40,7 @@ export default function Collection() {
 
   return (
     <main className="page">
-      <h1>{t('collection.title')}</h1>
+      <div className="section"><small>御朱印コレクション</small><h1>{t('collection.title')}</h1></div>
       <div className="filters">
         <select value={kind} onChange={(e) => setKind(e.target.value)}>
           <option value="">{t('places.all_kinds')}</option>
@@ -59,17 +59,20 @@ export default function Collection() {
       </div>
       {!page && <p className="muted">{t('common.loading')}</p>}
       {page?.count === 0 && <p className="muted">{t('collection.empty')}</p>}
-      <div className="grid">
+      {!!page?.items.length && <div className="book-spread">
         {page?.items.map((s) => (
-          <Link key={s.id} to={`/places/${s.place.id}`} className="tile">
-            {s.media[0] ? <img src={mediaUrl(s.media[0].id)} alt="" loading="lazy" /> : <span className="no-photo">印</span>}
-            <span className="tile-caption">
-              <strong>{placeName(s.place, locale)}</strong>
-              <span className="muted small">{s.title || t(`stamp.${s.kind}`)} · {formatDate(s.visited_on, s.visited_precision, locale, t)}</span>
-            </span>
+          <Link
+            key={s.id}
+            to={`/places/${s.place.id}`}
+            className="tile"
+            title={`${placeName(s.place, locale)} · ${s.title || t(`stamp.${s.kind}`)}`}
+          >
+            {s.media[0] ? <img src={mediaUrl(s.media[0].id)} alt="" loading="lazy" /> : <span className="no-photo"><span>印</span></span>}
+            <span className="label">{s.place.name_ja || placeName(s.place, locale)}</span>
+            <span className="date">{formatDate(s.visited_on, s.visited_precision, locale, t)}</span>
           </Link>
         ))}
-      </div>
+      </div>}
       {page?.next_offset != null && <button className="secondary wide" onClick={() => void more()}>{t('places.more')}</button>}
     </main>
   )

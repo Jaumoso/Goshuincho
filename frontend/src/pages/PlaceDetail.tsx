@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, ApiError, mediaUrl, type MineDetail, type PlaceDetail as Place, type Visit } from '../api'
 import AddVisitSheet from '../components/AddVisitSheet'
-import { KIND_ICON, formatWithRelative, localName, placeName, placeSubName } from '../format'
+import { KindIcon, Trash } from '../components/Icons'
+import { formatWithRelative, localName, placeName } from '../format'
 import { useI18n } from '../i18n'
 
 export default function PlaceDetail() {
@@ -55,7 +56,8 @@ export default function PlaceDetail() {
   if (!place) return <main className="page muted">{t('common.loading')}</main>
 
   const { mine } = place
-  const sub = placeSubName(place)
+  const title = placeName(place, locale)
+  const tategaki = place.name_ja && place.name_ja !== title ? place.name_ja : null
   const header =
     mine.visit_count === 0
       ? t('place.not_visited')
@@ -72,20 +74,25 @@ export default function PlaceDetail() {
       )}
       {place.status === 'pending' && <p className="notice">{t('place.pending')}</p>}
 
-      <h1>
-        <span aria-hidden>{KIND_ICON[place.kind]}</span> {placeName(place, locale)} {sub && <span className="ja">{sub}</span>}
-      </h1>
-      <p className="muted">
-        {t(`kind.${place.kind}`)} · {localName(place.prefecture, locale)}
-        {place.area && ` · ${localName(place.area, locale)}`}
-        {place.tradition && ` · ${place.tradition}`}
-      </p>
-      <p className="headline">{header}</p>
-      {mine.first_visit && mine.visit_count > 1 && (
-        <p className="muted small">{t('place.first', { date: formatWithRelative(mine.first_visit, mine.first_visit_precision ?? 'unknown', locale, t) })}</p>
-      )}
+      <section className={`hero kind-${place.kind}`}>
+        <span className="place-kind"><KindIcon kind={place.kind} size={18} /> {t(`kind.${place.kind}`)}</span>
+        <h1 style={tategaki ? { maxWidth: 'calc(100% - 5rem)' } : undefined}>{title}</h1>
+        <p className="meta">
+          {localName(place.prefecture, locale)}
+          {place.area && ` · ${localName(place.area, locale)}`}
+          {place.tradition && ` · ${place.tradition}`}
+        </p>
+        <p className="headline">{header}</p>
+        {mine.first_visit && mine.visit_count > 1 && (
+          <p className="meta small">{t('place.first', { date: formatWithRelative(mine.first_visit, mine.first_visit_precision ?? 'unknown', locale, t) })}</p>
+        )}
+        {tategaki && <span className="tategaki" lang="ja">{tategaki}</span>}
+        {mine.visit_count > 0 && (
+          <span className="visited-seal" aria-hidden>参拝<b>{mine.visit_count}</b></span>
+        )}
+      </section>
 
-      <div className="row wrap">
+      <div className="actions">
         {place.status !== 'merged' && <button onClick={() => setSheet({})}>＋ {t('place.add_visit')}</button>}
         <button className={`toggle ${mine.wishlist ? 'on' : ''}`} aria-pressed={mine.wishlist} onClick={() => void toggle('wishlist')}>
           {mine.wishlist ? '♥' : '♡'} {t('place.wishlist')}
@@ -96,15 +103,15 @@ export default function PlaceDetail() {
       </div>
 
       {place.categories.length > 0 && (
-        <p className="chips">
+        <div className="chips">
           {place.categories.map((c) => (
             <Link key={c.slug} className="chip" to={`/places?category=${c.slug}`}>
               {localName(c, locale)}{c.seq != null && ` #${c.seq}`}
             </Link>
           ))}
-        </p>
+        </div>
       )}
-      <p className="small muted">
+      <p className="facts">
         {place.goshuin_available === true && `${t('place.goshuin_yes')} · `}
         {place.goshuin_available === false && `${t('place.goshuin_no')} · `}
         {place.address && `${place.address} · `}
@@ -117,19 +124,19 @@ export default function PlaceDetail() {
       </p>
       {place.goshuin_info && <p className="small">{place.goshuin_info}</p>}
 
-      <h2>{t('place.history')}</h2>
+      <div className="section"><small>参拝記録</small><h2>{t('place.history')}</h2></div>
       {visits.length === 0 && <p className="muted">{t('place.no_history')}</p>}
       <ol className="history">
         {visits.map((v) => (
           <li key={v.id} className="card">
             <div className="row">
-              <strong className="grow">
+              <strong className="grow date">
                 {formatWithRelative(v.visited_on, v.visited_precision, locale, t)}
                 {v.kind !== 'in_person' && <span className="pill">{t(`visit.kind.${v.kind}`)}</span>}
                 {v.event_location && <span className="muted small"> · {v.event_location}</span>}
               </strong>
               <button className="link small" onClick={() => setSheet({ visitId: v.id })}>＋ {t('place.add_stamp')}</button>
-              <button className="link small" aria-label={t('place.delete_visit')} title={t('place.delete_visit')} onClick={() => void removeVisit(v)}>🗑</button>
+              <button className="icon" aria-label={t('place.delete_visit')} title={t('place.delete_visit')} onClick={() => void removeVisit(v)}><Trash size={18} /></button>
             </div>
             {v.notes && <p className="small">{v.notes}</p>}
             <div className="stamps">
@@ -140,7 +147,7 @@ export default function PlaceDetail() {
                       <img src={mediaUrl(s.media[0].id)} alt={s.title ?? t(`stamp.${s.kind}`)} loading="lazy" />
                     </a>
                   ) : (
-                    <span className="no-photo">印</span>
+                    <span className="no-photo"><span>印</span></span>
                   )}
                   <figcaption>
                     {s.title || t(`stamp.${s.kind}`)}
@@ -170,7 +177,7 @@ export default function PlaceDetail() {
           }}
         />
       )}
-      {toast && <div className="toast" role="status">{toast}</div>}
+      {toast && <div className="toast" role="status"><span className="hanko">参拝</span>{toast}</div>}
     </main>
   )
 }

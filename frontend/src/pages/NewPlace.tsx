@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, newId, type PlaceDetail, type PlaceKind, type SimilarPlace } from '../api'
 import { usePrefectures, useRegions } from '../data'
-import { KIND_ICON, localName, placeName } from '../format'
+import { KindIcon, Pin } from '../components/Icons'
+import { localName, placeName } from '../format'
 import { useI18n, type MessageKey } from '../i18n'
 
 export default function NewPlace() {
@@ -75,7 +76,7 @@ export default function NewPlace() {
 
   return (
     <main className="page narrow">
-      <h1>{t('newplace.title')}</h1>
+      <div className="section"><small>新しい場所</small><h1>{t('newplace.title')}</h1></div>
       <p className="muted">{t('newplace.intro')}</p>
       <form className="stack" onSubmit={(e) => void submit(e)}>
         <label>
@@ -99,7 +100,7 @@ export default function NewPlace() {
               {similar.map((s) => (
                 <li key={s.id}>
                   <Link to={`/places/${s.id}`}>
-                    {KIND_ICON[s.kind]} {placeName(s, locale)} {s.name_ja && <span className="ja">{s.name_ja}</span>}
+                    <KindIcon kind={s.kind} size={16} /> {placeName(s, locale)} {s.name_ja && <span className="ja">{s.name_ja}</span>}
                   </Link>
                   {s.distance_m != null && <span className="muted small"> · {Math.round(s.distance_m)} m</span>}
                 </li>
@@ -130,7 +131,7 @@ export default function NewPlace() {
             <input type="number" step="any" min={122} max={154} value={lon} onChange={(e) => setLon(e.target.value)} />
           </label>
         </div>
-        <button type="button" className="secondary" onClick={locate}>📍 {t('newplace.here')}</button>
+        <button type="button" className="secondary" onClick={locate}><Pin size={18} /> {t('newplace.here')}</button>
         {error && <p className="error">{t(error)}</p>}
         <button type="submit" disabled={saving}>{t('newplace.create')}</button>
       </form>

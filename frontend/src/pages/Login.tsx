@@ -34,8 +34,9 @@ export default function Login() {
   }
 
   return (
+    <div className="login-wrap">
     <main className="login">
-      <img src="/icon-192.png" alt="" width={72} height={72} />
+      <span className="hanko vertical logo" aria-hidden>御朱印帳</span>
       <h1>Goshuinchō</h1>
       <p className="muted">{t('app.tagline')}</p>
       <form onSubmit={submit} className="card">
@@ -64,5 +65,6 @@ export default function Login() {
         </button>
       </form>
     </main>
+    </div>
   )
 }
