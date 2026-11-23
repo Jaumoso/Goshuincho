@@ -36,6 +36,7 @@ export default function Home() {
           <div className="stat"><span className="seal">{stats.prefectures_visited}<small>/47</small></span><span><span className="ja">都道府県</span>{t('stats.prefectures')}</span></div>
         </div>
       )}
+      {stats && <Link to="/stats" className="small stats-more">{t('stats.more')} →</Link>}
       <div className="section"><small>最近の参拝</small><h2>{t('home.recent')}</h2></div>
       {visits?.length === 0 && <p className="muted">{t('home.empty')}</p>}
       <ul className="list">

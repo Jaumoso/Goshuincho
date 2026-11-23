@@ -271,6 +271,18 @@ export interface Stats {
   by_year: { key: string; count: number }[]
 }
 
+export interface StatsDetail {
+  by_prefecture: { id: number; places: number; visited: number; goshuin: number }[]
+  by_region: { id: number; places: number; visited: number }[]
+  by_place_kind: { key: PlaceKind; count: number }[]
+  goshuin_by_year: { key: string; count: number }[]
+  longest_streak_months: number
+  current_streak_months: number
+  heatmap_year: number
+  heatmap: { date: string; count: number }[]
+  years: number[]
+}
+
 export function newId(): string {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
   const b = crypto.getRandomValues(new Uint8Array(16))

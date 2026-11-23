@@ -268,3 +268,26 @@ def test_route_progress_and_order(api, hanako, kyoto, temple):
     assert [p["seq"] for p in detail["places"]] == [1, 2]
     assert detail["places"][0]["mine"]["visit_count"] == 1
     assert api.get("/api/categories/nope").status_code == 404
+
+
+def test_month_streaks():
+    from visits.api import month_streaks
+
+    months = {(2024, 11), (2024, 12), (2025, 1), (2025, 5), (2025, 6)}
+    assert month_streaks(months, date(2025, 7, 3)) == (3, 2)
+    assert month_streaks(months, date(2025, 9, 1)) == (3, 0)
+    assert month_streaks(set(), date(2025, 9, 1)) == (0, 0)
+
+
+def test_stats_detail(api, kyoto, temple):
+    post(api, f"/api/places/{temple.id}/visits", {"visited_on": "2024-03-10", "stamps": [{"kind": "goshuin"}]})
+    post(api, f"/api/places/{temple.id}/visits", {"visited_on": "2024-03-10"})
+    post(api, f"/api/places/{temple.id}/visits", {"visited_on": "2023-07-01", "visited_precision": "season",
+                                                  "stamps": [{"kind": "station_stamp"}]})
+    data = api.get("/api/stats/detail?year=2024").json()
+    assert data["by_prefecture"] == [{"id": 26, "places": 1, "visited": 1, "goshuin": 1}]
+    assert data["by_region"] == [{"id": 5, "places": 1, "visited": 1}]
+    assert data["goshuin_by_year"] == [{"key": "2024", "count": 1}]
+    assert data["heatmap"] == [{"date": "2024-03-10", "count": 2}]
+    assert data["years"] == [2024, 2023]
+    assert data["longest_streak_months"] == 1

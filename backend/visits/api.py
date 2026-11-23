@@ -4,7 +4,7 @@ from typing import Literal, Optional
 
 from django.db import IntegrityError, transaction
 from django.db.models import Count, F, Q
-from django.db.models.functions import ExtractYear
+from django.db.models.functions import ExtractYear, TruncMonth
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -13,7 +13,7 @@ from ninja.errors import HttpError
 from ninja.files import UploadedFile
 
 from places.api import visible_place
-from places.models import Place
+from places.models import Place, ReviewStatus
 
 from . import media as storage
 from .models import (
@@ -217,6 +217,36 @@ class StatsOut(Schema):
     by_prefecture: list[CountItem]
     by_kind: list[CountItem]
     by_year: list[CountItem]
+
+
+class PrefectureStat(Schema):
+    id: int
+    places: int
+    visited: int
+    goshuin: int
+
+
+class RegionStat(Schema):
+    id: int
+    places: int
+    visited: int
+
+
+class DayCount(Schema):
+    date: date
+    count: int
+
+
+class StatsDetailOut(Schema):
+    by_prefecture: list[PrefectureStat]
+    by_region: list[RegionStat]
+    by_place_kind: list[CountItem]
+    goshuin_by_year: list[CountItem]
+    longest_streak_months: int
+    current_streak_months: int
+    heatmap_year: int
+    heatmap: list[DayCount]
+    years: list[int]
 
 
 class ErrorOut(Schema):
@@ -691,4 +721,74 @@ def stats_summary(request):
         "by_prefecture": [{"key": str(r["place__prefecture_id"]), "count": r["n"]} for r in by_prefecture],
         "by_kind": [{"key": r["kind"], "count": r["n"]} for r in by_kind],
         "by_year": [{"key": str(r["y"]), "count": r["n"]} for r in by_year],
+    }
+
+
+def month_streaks(months: set[tuple[int, int]], today: date) -> tuple[int, int]:
+    """Rachas de meses consecutivos con alguna visita. La actual sigue viva si el último mes es este o el anterior."""
+    index = sorted(y * 12 + m - 1 for y, m in months)
+    longest = run = 0
+    prev = None
+    for i in index:
+        run = run + 1 if prev is not None and i == prev + 1 else 1
+        longest = max(longest, run)
+        prev = i
+    now = today.year * 12 + today.month - 1
+    current = run if index and index[-1] >= now - 1 else 0
+    return longest, current
+
+
+@router.get("/stats/detail", response=StatsDetailOut)
+def stats_detail(request, year: Optional[int] = None):
+    user = request.user
+    visits = Visit.objects.filter(user=user, deleted_at__isnull=True, kind=VisitKind.IN_PERSON)
+    visited = UserPlaceSummary.objects.filter(user=user, visit_count__gt=0)
+    goshuin = stamp_queryset(user).filter(kind__startswith="goshuin")
+    approved = Place.objects.filter(status=ReviewStatus.APPROVED)
+
+    available = dict(approved.values_list("prefecture_id").annotate(n=Count("id")))
+    mine = dict(visited.values_list("place__prefecture_id").annotate(n=Count("place_id")))
+    stamped = dict(goshuin.values_list("place__prefecture_id").annotate(n=Count("id")))
+    by_prefecture = [
+        {"id": pid, "places": available.get(pid, 0), "visited": mine.get(pid, 0), "goshuin": stamped.get(pid, 0)}
+        for pid in sorted(set(available) | set(mine) | set(stamped))
+    ]
+    region_places = dict(approved.values_list("prefecture__region_id").annotate(n=Count("id")))
+    region_visited = dict(visited.values_list("place__prefecture__region_id").annotate(n=Count("place_id")))
+    by_region = [
+        {"id": rid, "places": region_places.get(rid, 0), "visited": region_visited.get(rid, 0)}
+        for rid in sorted(set(region_places) | set(region_visited))
+    ]
+    by_place_kind = visited.values("place__kind").annotate(n=Count("place_id")).order_by("-n")
+    goshuin_by_year = (
+        goshuin.filter(visit__visited_on__isnull=False)
+        .annotate(y=ExtractYear("visit__visited_on"))
+        .values("y")
+        .annotate(n=Count("id"))
+        .order_by("y")
+    )
+
+    dated = visits.filter(visited_on__isnull=False)
+    precise = dated.filter(visited_precision__in=[DatePrecision.DAY, DatePrecision.MONTH])
+    months = {(d.year, d.month) for d in precise.annotate(m=TruncMonth("visited_on")).values_list("m", flat=True)}
+    longest, current = month_streaks(months, timezone.localdate())
+
+    years = sorted({d.year for d in dated.values_list("visited_on", flat=True)}, reverse=True)
+    heatmap_year = year or timezone.localdate().year
+    days = (
+        visits.filter(visited_precision=DatePrecision.DAY, visited_on__year=heatmap_year)
+        .values("visited_on")
+        .annotate(n=Count("id"))
+        .order_by("visited_on")
+    )
+    return {
+        "by_prefecture": by_prefecture,
+        "by_region": by_region,
+        "by_place_kind": [{"key": r["place__kind"], "count": r["n"]} for r in by_place_kind],
+        "goshuin_by_year": [{"key": str(r["y"]), "count": r["n"]} for r in goshuin_by_year],
+        "longest_streak_months": longest,
+        "current_streak_months": current,
+        "heatmap_year": heatmap_year,
+        "heatmap": [{"date": r["visited_on"], "count": r["n"]} for r in days],
+        "years": years,
     }
