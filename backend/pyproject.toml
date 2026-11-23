@@ -1,10 +1,11 @@
 [project]
 name = "goshuincho"
 version = "0.1.0"
-description = "Goshuinchō: registro selfhosted de goshuin y visitas en Japón"
+description = "Self-hosted PWA to log visits to Japanese shrines, temples and stations and the goshuin you collect"
 authors = [
-    { name = "Jaume Civera", email = "jaume.civera@lumibit.io" }
+    { name = "Jaume Civera", email = "jaume.civera@tutamail.com" }
 ]
+license = "AGPL-3.0-or-later"
 requires-python = ">=3.12"
 dependencies = [
     "argon2-cffi>=25.1.0",

@@ -1,5 +1,5 @@
 x-goshuincho: &goshuincho
-  image: ghcr.io/${GOSHUINCHO_OWNER:-goshuincho}/goshuincho:${GOSHUINCHO_VERSION:-latest}
+  image: ghcr.io/${GOSHUINCHO_OWNER:-jaumoso}/goshuincho:${GOSHUINCHO_VERSION:-latest}
   build: .
   env_file: .env
   environment:

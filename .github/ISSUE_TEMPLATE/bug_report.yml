@@ -1,0 +1,27 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected and what happened instead. Screenshots help.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown at `/api/health`, e.g. `0.1.0`.
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser/device, host OS and architecture, reverse proxy.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant output of `docker compose logs app worker`. Remove any personal data.
+      render: text

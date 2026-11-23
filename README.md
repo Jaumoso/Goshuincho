@@ -1,5 +1,8 @@
 # Goshuinchō 御朱印帳
 
+[![CI](https://github.com/Jaumoso/Goshuincho/actions/workflows/ci.yml/badge.svg)](https://github.com/Jaumoso/Goshuincho/actions/workflows/ci.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+
 A self-hosted progressive web app for logging your visits to Japanese shrines, temples and stations, together with the **goshuin** (御朱印) and stamps you collect there.
 
 <p align="center">
@@ -30,8 +33,10 @@ You need Docker with Compose and a reverse proxy that terminates HTTPS. The PWA,
 git clone https://github.com/Jaumoso/Goshuincho.git && cd Goshuincho
 cp .env.example .env    # fill in PUBLIC_URL, SECRET_KEY, DB_PASSWORD, ADMIN_EMAIL and ADMIN_PASSWORD
 mkdir -p tiles
-docker compose up -d --build
+docker compose up -d
 ```
+
+This pulls the published image from `ghcr.io/jaumoso/goshuincho`. To build from source instead, run `docker compose up -d --build`. To pin a release, set `GOSHUINCHO_VERSION` (for example `0.1.0`) in `.env`.
 
 The `migrate` service applies database migrations, loads Japan's regions and prefectures, and creates the admin user. After that, `app` and `worker` start, and the app listens on `127.0.0.1:8000`.
 
@@ -72,6 +77,14 @@ location / {
 }
 ```
 
+### Updating
+
+```sh
+docker compose pull && docker compose up -d
+```
+
+Migrations run automatically on startup. Back up first (see [Backups](#backups)).
+
 ### Configuration
 
 | Variable | Required | Description |
@@ -83,6 +96,7 @@ location / {
 | `BIND_ADDRESS`, `PORT` | | Where the app listens (default `127.0.0.1:8000`) |
 | `MAX_UPLOAD_MB` | | Upload limit (default 25) |
 | `KEEP_ORIGINAL_EXIF` | | Keep the EXIF data of original photos (default `true`) |
+| `GOSHUINCHO_VERSION` | | Image tag to run (default `latest`) |
 | `POSTGIS_IMAGE` | | Alternative PostGIS image |
 
 ## Base map (optional, recommended)
@@ -187,3 +201,11 @@ The full functional and technical specification is in [`docs/especificacion.md`]
 - Places and base map: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, ODbL. Tiles by [Protomaps](https://protomaps.com).
 - Prefecture boundaries: [Natural Earth](https://www.naturalearthdata.com/), public domain.
 - Map font: Noto Sans, SIL Open Font License (`frontend/public/map/fonts/OFL.txt`).
+
+## Contributing
+
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md); to report a vulnerability, see [SECURITY.md](SECURITY.md).
+
+## License
+
+Goshuinchō is free software, licensed under the [GNU Affero General Public License v3.0](LICENSE). If you run a modified version as a public service, you must make its source code available to its users.
