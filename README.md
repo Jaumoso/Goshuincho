@@ -64,6 +64,10 @@ Pantallas de la PWA: inicio con estadísticas y últimas visitas, búsqueda de l
 
 Los lugares que crean los usuarios quedan pendientes y solo los ve quien los creó. En *Lugares › Lugares pendientes de revisión* el administrador los aprueba, los rechaza o los fusiona con un duplicado ya aprobado: la lista sugiere candidatos cercanos con nombre parecido y la fusión mueve visitas, goshuin, listas de deseos y categorías al lugar de destino. El lugar fusionado no se borra (queda como `merged`), así que los enlaces antiguos siguen funcionando.
 
+### Propuestas de corrección
+
+En la ficha de un lugar aprobado, **Proponer corrección** abre un formulario con los datos actuales (tipo, nombres, dirección, web, goshuin, coordenadas) y un comentario. Solo se envía lo que cambia. En *Lugares › Propuestas de corrección* el administrador ve una tabla «actual → propuesto» y la aplica o rechaza (desde la ficha o en bloque). Al aplicarla, si cambian las coordenadas se recalcula la prefectura, y el lugar queda marcado como modificado localmente para que una reimportación de OSM no deshaga la corrección.
+
 ## Copia personal y migración entre instancias
 
 En *Ajustes › Copia de tus datos* cada usuario descarga un ZIP con `data.json` (visitas, goshuin y sellos, libretas, lista de deseos y notas, lugares propios) y las fotos originales, y puede importarlo en esta u otra instancia (`POST /api/export`, `POST /api/import`). Al importar, cada lugar se busca por id, después por su id de OSM y por último por nombre a menos de 300 m; si no aparece se crea como lugar privado pendiente. La importación conserva los ids y es idempotente: repetirla no duplica nada.

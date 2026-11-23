@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, ApiError, mediaUrl, type MineDetail, type PlaceDetail as Place, type Visit } from '../api'
 import AddVisitSheet from '../components/AddVisitSheet'
+import CorrectionSheet from '../components/CorrectionSheet'
 import { KindIcon, Trash } from '../components/Icons'
 import { formatWithRelative, localName, placeName } from '../format'
 import { useI18n } from '../i18n'
@@ -14,12 +15,19 @@ export default function PlaceDetail() {
   const [missing, setMissing] = useState(false)
   const [sheet, setSheet] = useState<{ visitId?: string } | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [correcting, setCorrecting] = useState(false)
+  const [correctionPending, setCorrectionPending] = useState(false)
 
   const load = useCallback(async () => {
     try {
       const [p, v] = await Promise.all([api<Place>(`/places/${id}`), api<Visit[]>(`/places/${id}/visits`)])
       setPlace(p)
       setVisits(v)
+      if (p.status === 'approved') {
+        api<{ status: string }[]>(`/places/${id}/corrections`)
+          .then((c) => setCorrectionPending(c.some((x) => x.status === 'pending')))
+          .catch(() => setCorrectionPending(false))
+      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) setMissing(true)
       else console.error(err)
@@ -121,9 +129,17 @@ export default function PlaceDetail() {
         )}
       </p>
       {place.goshuin_info && <p className="small">{place.goshuin_info}</p>}
-      {place.source === 'osm' && (
+      {(place.source === 'osm' || place.status === 'approved') && (
         <p className="small muted">
-          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">{t('place.osm_data')}</a>
+          {place.source === 'osm' && (
+            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">{t('place.osm_data')}</a>
+          )}
+          {place.source === 'osm' && place.status === 'approved' && ' · '}
+          {place.status === 'approved' && (
+            correctionPending
+              ? <span>{t('correction.pending')}</span>
+              : <button type="button" className="link" onClick={() => setCorrecting(true)}>{t('correction.propose')}</button>
+          )}
         </p>
       )}
 
@@ -178,6 +194,17 @@ export default function PlaceDetail() {
             setSheet(null)
             setToast(t(queued ? 'offline.saved' : 'sheet.saved'))
             void load()
+          }}
+        />
+      )}
+      {correcting && (
+        <CorrectionSheet
+          place={place}
+          onClose={() => setCorrecting(false)}
+          onSaved={() => {
+            setCorrecting(false)
+            setCorrectionPending(true)
+            setToast(t('correction.sent'))
           }}
         />
       )}

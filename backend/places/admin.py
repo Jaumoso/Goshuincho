@@ -8,8 +8,8 @@ from django.urls import path, reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 
-from .models import Category, OsmImport, Place, PlaceCategory, PlaceReview, ReviewStatus
-from .services import MergeError, merge_candidates, merge_place
+from .models import Category, OsmImport, Place, PlaceCategory, PlaceCorrection, PlaceReview, ReviewStatus
+from .services import CorrectionError, MergeError, apply_correction, merge_candidates, merge_place, reject_correction
 
 
 class PlaceCategoryInline(admin.TabularInline):
@@ -160,3 +160,81 @@ class OsmImportAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+
+def _current_value(place, field):
+    if field == "lat":
+        return round(place.location.y, 6) if place.location else None
+    if field == "lon":
+        return round(place.location.x, 6) if place.location else None
+    if field == "prefecture_id":
+        return place.prefecture
+    if field == "area_id":
+        return place.area
+    return getattr(place, field, None)
+
+
+@admin.register(PlaceCorrection)
+class PlaceCorrectionAdmin(admin.ModelAdmin):
+    list_display = ["place", "user", "created_at", "status", "summary"]
+    list_filter = ["status"]
+    list_select_related = ["place", "user"]
+    search_fields = ["place__name_ja", "place__name_romaji", "place__name_en", "comment"]
+    readonly_fields = ["place_link", "user", "created_at", "diff", "comment", "status", "reviewed_by", "reviewed_at"]
+    fields = readonly_fields
+    actions = ["apply_selected", "reject_selected"]
+    change_form_template = "admin/places/correction_change_form.html"
+
+    def has_add_permission(self, request):
+        return False
+
+    def response_change(self, request, obj):
+        if "_apply" in request.POST:
+            try:
+                apply_correction(obj, request.user)
+                self.message_user(request, f"Propuesta aplicada a {obj.place}.", messages.SUCCESS)
+            except CorrectionError as e:
+                self.message_user(request, str(e), messages.ERROR)
+            return redirect("admin:places_placecorrection_changelist")
+        if "_reject" in request.POST:
+            reject_correction(obj, request.user)
+            self.message_user(request, "Propuesta rechazada.", messages.SUCCESS)
+            return redirect("admin:places_placecorrection_changelist")
+        return super().response_change(request, obj)
+
+    @admin.display(description="cambios")
+    def summary(self, obj):
+        return ", ".join(obj.changes) or "(solo comentario)"
+
+    @admin.display(description="lugar")
+    def place_link(self, obj):
+        url = reverse("admin:places_place_change", args=[obj.place_id])
+        return format_html('<a href="{}">{}</a>', url, obj.place)
+
+    @admin.display(description="actual → propuesto")
+    def diff(self, obj):
+        if not obj.changes:
+            return "(sin cambios de datos)"
+        rows = format_html_join(
+            "",
+            "<tr><th>{}</th><td>{}</td><td><b>{}</b></td></tr>",
+            ((f, _current_value(obj.place, f) if _current_value(obj.place, f) not in (None, "") else "—",
+              v if v not in (None, "") else "—") for f, v in obj.changes.items()),
+        )
+        return format_html("<table><tr><th>campo</th><th>actual</th><th>propuesto</th></tr>{}</table>", rows)
+
+    @admin.action(description="Aplicar propuestas seleccionadas")
+    def apply_selected(self, request, queryset):
+        done = 0
+        for c in queryset.filter(status=PlaceCorrection.Status.PENDING):
+            try:
+                apply_correction(c, request.user)
+                done += 1
+            except CorrectionError as e:
+                self.message_user(request, f"{c.place}: {e}", messages.ERROR)
+        self.message_user(request, f"{done} propuesta(s) aplicada(s).", messages.SUCCESS)
+
+    @admin.action(description="Rechazar propuestas seleccionadas")
+    def reject_selected(self, request, queryset):
+        n = sum(reject_correction(c, request.user) for c in queryset.filter(status=PlaceCorrection.Status.PENDING))
+        self.message_user(request, f"{n} propuesta(s) rechazada(s).", messages.SUCCESS)

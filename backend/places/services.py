@@ -60,3 +60,47 @@ def merge_candidates(place: Place, limit: int = 5):
     name = place.name_ja or place.name_romaji or place.name_en or ""
     loc = place.location
     return list(similar_queryset(qs, name, loc.y if loc else None, loc.x if loc else None)[:limit])
+
+
+class CorrectionError(ValueError):
+    pass
+
+
+@transaction.atomic
+def apply_correction(correction, reviewer) -> Place:
+    """Aplica una propuesta pendiente al lugar y la marca como aplicada."""
+    from django.utils import timezone
+    from ninja.errors import HttpError
+
+    from .api import apply_patch
+    from .models import PlaceCorrection
+
+    correction = PlaceCorrection.objects.select_for_update().get(pk=correction.pk)
+    if correction.status != PlaceCorrection.Status.PENDING:
+        raise CorrectionError("La propuesta ya estaba revisada.")
+    place = Place.objects.select_for_update().get(pk=correction.place_id)
+    if place.status != ReviewStatus.APPROVED:
+        raise CorrectionError("El lugar ya no está aprobado.")
+    try:
+        apply_patch(place, correction.changes)
+    except HttpError as e:
+        raise CorrectionError(f"Datos no válidos: {e}") from e
+    if correction.changes:
+        # Evita que una reimportación de OSM deshaga la corrección.
+        place.locally_modified = True
+    place.save()
+    correction.status = PlaceCorrection.Status.APPLIED
+    correction.reviewed_by = reviewer
+    correction.reviewed_at = timezone.now()
+    correction.save(update_fields=["status", "reviewed_by", "reviewed_at"])
+    return place
+
+
+def reject_correction(correction, reviewer):
+    from django.utils import timezone
+
+    from .models import PlaceCorrection
+
+    return PlaceCorrection.objects.filter(pk=correction.pk, status=PlaceCorrection.Status.PENDING).update(
+        status=PlaceCorrection.Status.REJECTED, reviewed_by=reviewer, reviewed_at=timezone.now()
+    )

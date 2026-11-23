@@ -1,0 +1,11 @@
+{% extends "admin/change_form.html" %}
+{% block submit_buttons_bottom %}
+  {% if original.status == "pending" %}
+    <div class="submit-row">
+      <input type="submit" class="default" name="_apply" value="Aplicar al lugar">
+      <input type="submit" name="_reject" value="Rechazar">
+    </div>
+  {% else %}
+    {{ block.super }}
+  {% endif %}
+{% endblock %}

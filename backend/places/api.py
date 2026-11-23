@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 from typing import Literal, Optional
 
 from django.contrib.gis.geos import Point, Polygon
@@ -13,7 +13,7 @@ from geo.models import Area, Prefecture
 from geo.utils import prefecture_for_point
 from visits.models import UserPlaceSummary, Visit, VisitKind
 
-from .models import Category, Place, PlaceCategory, PlaceKind, PlaceSource, ReviewStatus, UserPlace
+from .models import Category, Place, PlaceCategory, PlaceCorrection, PlaceKind, PlaceSource, ReviewStatus, UserPlace
 
 router = Router(tags=["places"])
 
@@ -333,7 +333,7 @@ def apply_location(place: Place, data: dict):
             raise HttpError(422, "invalid_prefecture")
         place.prefecture_id = prefecture_id
     elif lat is not None:
-        place.prefecture = prefecture_for_point(lon, lat)
+        place.prefecture = prefecture_for_point(lon, lat) or place.prefecture
     area_id = data.pop("area_id", None)
     if area_id is not None:
         place.area_id = area_id
@@ -621,15 +621,83 @@ def create_place(request, payload: PlaceIn):
 @router.patch("/places/{place_id}", response=PlaceDetail)
 def update_place(request, place_id: uuid.UUID, payload: PlacePatch):
     place = editable_place(request.user, place_id)
-    data = payload.dict(exclude_unset=True)
+    apply_patch(place, payload.dict(exclude_unset=True))
+    place.save()
+    return place_detail(request.user, visible_place(request.user, place.id))
+
+
+def apply_patch(place: Place, data: dict):
+    """Aplica campos con el formato de PlacePatch (sin guardar)."""
+    data = dict(data)
     apply_location(place, data)
     for f, v in data.items():
         if f == "kind" and v is None:
             continue
         setattr(place, f, v)
     clean_names(place)
-    place.save()
-    return place_detail(request.user, visible_place(request.user, place.id))
+
+
+# --- Propuestas de corrección ----------------------------------------------
+
+MAX_PENDING_CORRECTIONS = 20
+
+
+class CorrectionIn(Schema):
+    changes: PlacePatch
+    comment: Optional[str] = Field(None, max_length=2000)
+
+
+class CorrectionOut(Schema):
+    id: uuid.UUID
+    changes: dict
+    comment: str
+    status: str
+    created_at: datetime
+
+
+def correction_diff(place: Place, changes: dict) -> dict:
+    """Quita lo que no cambia respecto al lugar actual."""
+    diff = {}
+    if changes.get("lat") is not None and changes.get("lon") is not None:
+        if place.location is None or (
+            round(place.location.y, 6), round(place.location.x, 6)
+        ) != (round(changes["lat"], 6), round(changes["lon"], 6)):
+            diff["lat"], diff["lon"] = changes["lat"], changes["lon"]
+    for f, v in changes.items():
+        if f in ("lat", "lon"):
+            continue
+        if f == "kind" and v is None:
+            continue
+        if isinstance(v, str):
+            v = v.strip() or None
+        if v != getattr(place, f, None):
+            diff[f] = v
+    return diff
+
+
+@router.post("/places/{place_id}/corrections", response={201: CorrectionOut, 409: ErrorOut, 422: ErrorOut, 429: ErrorOut})
+def propose_correction(request, place_id: uuid.UUID, payload: CorrectionIn):
+    place = visible_place(request.user, place_id)
+    if place.status != ReviewStatus.APPROVED:
+        # Los lugares propios pendientes se editan directamente con PATCH.
+        return Status(409, {"detail": "not_approved"})
+    changes = correction_diff(place, payload.changes.dict(exclude_unset=True))
+    comment = (payload.comment or "").strip()
+    if not changes and not comment:
+        return Status(422, {"detail": "no_changes"})
+    # Valida coordenadas, prefectura y zona sin guardar el lugar.
+    apply_patch(Place.objects.get(pk=place.pk), changes)
+    pending = PlaceCorrection.objects.filter(user=request.user, status=PlaceCorrection.Status.PENDING)
+    if pending.count() >= MAX_PENDING_CORRECTIONS:
+        return Status(429, {"detail": "too_many_pending"})
+    item = PlaceCorrection.objects.create(place=place, user=request.user, changes=changes, comment=comment)
+    return Status(201, item)
+
+
+@router.get("/places/{place_id}/corrections", response=list[CorrectionOut])
+def my_corrections(request, place_id: uuid.UUID):
+    place = visible_place(request.user, place_id)
+    return list(PlaceCorrection.objects.filter(place=place, user=request.user)[:20])
 
 
 @router.delete("/places/{place_id}", response={204: None, 409: ErrorOut})

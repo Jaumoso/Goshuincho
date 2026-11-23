@@ -183,3 +183,41 @@ class PlaceReview(Place):
         proxy = True
         verbose_name = "lugar pendiente de revisión"
         verbose_name_plural = "cola de revisión"
+
+
+class PlaceCorrection(models.Model):
+    """Propuesta de un usuario para corregir un lugar aprobado; la aplica o rechaza un administrador."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "pendiente"
+        APPLIED = "applied", "aplicada"
+        REJECTED = "rejected", "rechazada"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    place = models.ForeignKey(Place, on_delete=models.DB_CASCADE, related_name="corrections", verbose_name="lugar")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.DB_SET_NULL, null=True, blank=True, related_name="+",
+        verbose_name="usuario",
+    )
+    # Solo los campos que cambian, con el mismo formato que PATCH /places/{id} (lat/lon sueltos).
+    changes = models.JSONField("cambios", default=dict, blank=True)
+    comment = models.TextField("comentario", blank=True, default="")
+    status = models.TextField("estado", choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField("enviada", auto_now_add=True)
+    reviewed_at = models.DateTimeField("revisada", null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.DB_SET_NULL, null=True, blank=True, related_name="+",
+        verbose_name="revisada por",
+    )
+
+    class Meta:
+        db_table = "place_corrections"
+        ordering = ["-created_at"]
+        verbose_name = "propuesta de corrección"
+        verbose_name_plural = "propuestas de corrección"
+        constraints = [
+            models.CheckConstraint(condition=Q(status__in=["pending", "applied", "rejected"]), name="corrections_status")
+        ]
+
+    def __str__(self):
+        return f"{self.place} · {self.get_status_display()}"
