@@ -76,6 +76,10 @@ En *Ajustes › Copia de tus datos* cada usuario descarga un ZIP con `data.json`
 
 En **Ajustes → Compartir colección** se crean enlaces de solo lectura (`/s/<token>`) a toda la colección o a una libreta. Quien tenga el enlace ve fotos, lugares, fechas y títulos de los goshuin, pero nunca notas, donativos ni el email; las páginas llevan `noindex`. Cada enlace muestra cuántas veces se ha abierto y se puede revocar en cualquier momento.
 
+## Lectura del kanji
+
+Cada goshuin puede guardar su inscripción en kanji. Al escribirla, la app sugiere piezas habituales (nombre del lugar, 奉拝, 本尊, fechas…) y muestra la lectura: furigana, rōmaji y un pequeño glosario. Se calcula en el servidor con pykakasi y un glosario propio, sin servicios externos. Es una lectura aproximada: los nombres propios pueden leerse de otra forma. Toca un goshuin en la ficha del lugar para verla o editarla.
+
 ## Uso sin conexión
 
 La app guarda las consultas recientes (lugares, visitas, colección y miniaturas) para poder verlas sin cobertura. Las visitas y goshuin que se registran sin conexión, con su foto, quedan en una cola del dispositivo y se envían solos al recuperar la conexión. El número pendiente aparece junto a **Ajustes**, donde se puede forzar el envío, reintentar o descartar lo que el servidor haya rechazado. Al cerrar sesión se borra la caché local.

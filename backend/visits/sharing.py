@@ -52,6 +52,7 @@ class SharedStamp(Schema):
     kind: str
     medium: Optional[str]
     title: Optional[str]
+    inscription: Optional[str]
     event_name: Optional[str]
     place: SharedPlace
     visited_on: Optional[date]
@@ -163,6 +164,7 @@ def shared_collection(request, response: HttpResponse, token: str, offset: int =
                 "kind": s.kind,
                 "medium": s.medium,
                 "title": s.title,
+                "inscription": s.inscription,
                 "event_name": s.event_name,
                 "place": place_ref(s.place),
                 "visited_on": s.visit.visited_on,

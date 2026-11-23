@@ -104,6 +104,8 @@ class Stamp(models.Model):
     kind = models.TextField(choices=StampKind.choices, default=StampKind.GOSHUIN)
     medium = models.TextField(choices=StampMedium.choices, null=True, blank=True)
     title = models.TextField(null=True, blank=True)
+    # Texto escrito en el goshuin (kanji), transcrito por el usuario.
+    inscription = models.TextField(null=True, blank=True)
     event_name = models.TextField(null=True, blank=True)
     donation_yen = models.IntegerField(null=True, blank=True)
     goshuincho = models.ForeignKey(

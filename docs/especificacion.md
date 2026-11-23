@@ -18,7 +18,7 @@ Goshuinchō es una web app (PWA) selfhosted con Docker para llevar el registro d
 
 - App nativa iOS/Android (la PWA cubre el uso en móvil).
 - Red social pública, comentarios entre usuarios o marketplace.
-- Lectura automática del kanji del goshuin (OCR); queda como mejora futura.
+- Lectura automática del kanji desde la foto (OCR); queda como mejora futura. La lectura asistida de la inscripción transcrita sí está incluida (RF-18).
 - Uso sin conexión, incluida la cola de subida de fotos; previsto para la v2. La API ya acepta identificadores generados en el cliente para que la v2 no requiera cambios de modelo.
 - Proxy HTTPS incluido: cada instalación usa el suyo (Caddy, Traefik, nginx…).
 
@@ -71,6 +71,7 @@ La app es multiusuario: el catálogo de lugares es común, y las visitas, goshui
 | RF-15 | Compartir una colección por enlace de solo lectura | v2 (hecho) |
 | RF-16 | Uso sin conexión: cola local de visitas, goshuin y fotos que se sincroniza al volver la conexión | v2 (hecho) |
 | RF-17 | Proponer correcciones de lugares aprobados (datos, ubicación, comentario) que el administrador aplica o rechaza | v2 (hecho) |
+| RF-18 | Lectura asistida del kanji del goshuin: inscripción transcrita con sugerencias, furigana, rōmaji y glosario, calculados sin conexión externa | v2 (hecho) |
 
 **Requisitos no funcionales**
 

@@ -8,6 +8,7 @@ import { todayIso } from '../format'
 import { useI18n, type MessageKey } from '../i18n'
 import { enqueue, isNetworkError, syncOutbox } from '../outbox'
 import { Camera } from './Icons'
+import { InscriptionField } from './Kanji'
 
 const STAMP_KINDS: StampKind[] = ['goshuin', 'goshuin_limited', 'goshuin_seasonal', 'station_stamp', 'other_stamp']
 const MEDIUMS: Medium[] = ['jikigaki', 'kakioki', 'stamped_paper', 'digital', 'other']
@@ -43,6 +44,7 @@ export default function AddVisitSheet({ placeId, placeName, visitId, onClose, on
   const [stampKind, setStampKind] = useState<StampKind | ''>(visitId ? 'goshuin' : 'goshuin')
   const [medium, setMedium] = useState<Medium | ''>('')
   const [title, setTitle] = useState('')
+  const [inscription, setInscription] = useState('')
   const [donation, setDonation] = useState('')
   const [book, setBook] = useState('')
   const [notes, setNotes] = useState('')
@@ -106,6 +108,7 @@ export default function AddVisitSheet({ placeId, placeName, visitId, onClose, on
           kind: stampKind,
           medium: medium || null,
           title: title || null,
+          inscription: inscription.trim() || null,
           donation_yen: donation ? Number(donation) : null,
           goshuincho_id: book || null,
           media: media ? [{ media_id: media.id }] : [],
@@ -274,6 +277,7 @@ export default function AddVisitSheet({ placeId, placeName, visitId, onClose, on
                   {t('sheet.title_field')}
                   <input value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} />
                 </label>
+                <InscriptionField placeId={placeId} value={inscription} onChange={setInscription} />
                 <label>
                   {t('sheet.donation')}
                   <input type="number" min={0} step={100} value={donation} onChange={(e) => setDonation(e.target.value)} />

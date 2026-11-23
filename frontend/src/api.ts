@@ -208,6 +208,7 @@ export interface Stamp {
   kind: StampKind
   medium: Medium | null
   title: string | null
+  inscription: string | null
   event_name: string | null
   donation_yen: number | null
   goshuincho_id: string | null
@@ -354,6 +355,7 @@ export interface SharedStamp {
   kind: StampKind
   medium: string | null
   title: string | null
+  inscription: string | null
   event_name: string | null
   place: { kind: PlaceKind; name_ja: string | null; name_romaji: string | null; name_en: string | null; prefecture_id: number }
   visited_on: string | null
@@ -377,4 +379,17 @@ export function shareUrl(token: string): string {
 
 export function sharedMediaUrl(token: string, id: string, variant: 'thumb' | 'medium' = 'thumb'): string {
   return `/api/shared/${encodeURIComponent(token)}/media/${id}/${variant}`
+}
+
+export interface KanjiToken {
+  text: string
+  kana: string | null
+  romaji: string
+  gloss_es: string | null
+  gloss_en: string | null
+}
+
+export interface KanjiReading {
+  tokens: KanjiToken[]
+  romaji: string
 }

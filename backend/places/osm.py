@@ -61,6 +61,12 @@ _kakasi = None
 
 
 def _convert(text: str) -> list[dict]:
+    global _kakasi
+    if _kakasi is None:
+        import pykakasi
+
+        _kakasi = pykakasi.kakasi()
+    text = VARIATION_SELECTORS.sub("", text)
     try:
         return _kakasi.convert(text)
     except (IndexError, KeyError):
@@ -90,11 +96,6 @@ def romanize(text: str) -> str:
     Cada palabra japonesa se translitera junta ("照護寺" → "Shōgo-ji") y los sufijos habituales
     de santuarios, templos y estaciones se separan.
     """
-    global _kakasi
-    if _kakasi is None:
-        import pykakasi
-
-        _kakasi = pykakasi.kakasi()
     words = []
     for part in WORD_SPLIT.split(VARIATION_SELECTORS.sub("", text)):
         if not part:

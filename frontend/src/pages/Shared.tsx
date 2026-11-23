@@ -101,6 +101,7 @@ function Shared({ token }: { token: string }) {
               <span>
                 {open.title || t(`stamp.${open.kind}`)} · {formatDate(open.visited_on, open.visited_precision, locale, t)}
               </span>
+              {open.inscription && <span className="inscription" lang="ja">{open.inscription}</span>}
             </figcaption>
             <button type="button" className="secondary" onClick={() => setOpen(null)}>{t('common.close')}</button>
           </figure>

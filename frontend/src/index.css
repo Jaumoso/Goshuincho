@@ -550,3 +550,32 @@ button.link.danger { color: var(--shu-deep); padding-left: 0; }
 .shared-viewer figcaption { display: grid; gap: .2rem; }
 .shared-viewer figcaption b { font-size: 1.2rem; }
 .share-list .outbox-actions a { align-self: center; }
+
+/* kanji reading */
+.stamp-open { all: unset; position: relative; display: block; cursor: pointer; border-radius: 2px; }
+.stamp-open:focus-visible { outline: 2px solid var(--shu); outline-offset: 2px; }
+.read-badge {
+  position: absolute; top: -6px; right: -6px; width: 1.6rem; height: 1.6rem; display: grid; place-items: center;
+  background: var(--shu); color: #fff; font-family: var(--mincho); font-weight: 800; font-size: 0.85rem;
+  border-radius: 50%; box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+}
+.stamp-sheet .stamp-photo { display: block; max-height: 42vh; margin: 0 auto; border-radius: 2px; box-shadow: 0 0 0 1px var(--line), 0 8px 18px -10px rgb(0 0 0 / 0.6); }
+.inscription-field { display: grid; gap: 0.5rem; }
+.inscription-field textarea { font-family: var(--mincho); font-size: 1.15rem; }
+.kanji-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.kanji-chip {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 0; min-height: 0;
+  padding: 0.25rem 0.55rem; background: var(--card); color: inherit; border: 1px solid var(--line);
+  border-bottom: 2px solid var(--shu); border-radius: 3px; font-weight: 400; line-height: 1.15;
+}
+.kanji-chip span { font-family: var(--mincho); font-size: 1rem; font-weight: 700; }
+.kanji-chip small { font-size: 0.62rem; color: var(--muted); }
+.kanji-reading { border-left: 4px solid var(--shu); padding: 0.4rem 0 0.4rem 0.8rem; }
+.ruby-line { display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: 0.3em; font-family: var(--mincho); font-size: 1.6rem; line-height: 2.4; margin: 0; }
+.ruby-line rt { font-size: 0.45em; color: var(--kin); font-family: inherit; letter-spacing: 0.05em; }
+.romaji { margin: 0 0 0.6rem; font-style: italic; color: var(--muted); }
+.glossary { display: grid; gap: 0.3rem; margin: 0 0 0.6rem; }
+.glossary div { display: grid; grid-template-columns: minmax(4.5rem, auto) 1fr; gap: 0.6rem; align-items: baseline; }
+.glossary dt { font-family: var(--mincho); font-weight: 800; color: var(--shu); }
+.glossary dd { margin: 0; font-size: 0.88rem; }
+.shared-viewer .inscription { font-family: var(--mincho); font-size: 1.1rem; }

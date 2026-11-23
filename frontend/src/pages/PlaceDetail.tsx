@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { api, ApiError, mediaUrl, type MineDetail, type PlaceDetail as Place, type Visit } from '../api'
+import { api, ApiError, mediaUrl, type MineDetail, type PlaceDetail as Place, type Stamp, type Visit } from '../api'
 import AddVisitSheet from '../components/AddVisitSheet'
 import CorrectionSheet from '../components/CorrectionSheet'
+import StampSheet from '../components/StampSheet'
 import { KindIcon, Trash } from '../components/Icons'
 import { formatWithRelative, localName, placeName } from '../format'
 import { useI18n } from '../i18n'
@@ -16,6 +17,7 @@ export default function PlaceDetail() {
   const [sheet, setSheet] = useState<{ visitId?: string } | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [correcting, setCorrecting] = useState(false)
+  const [openStamp, setOpenStamp] = useState<Stamp | null>(null)
   const [correctionPending, setCorrectionPending] = useState(false)
 
   const load = useCallback(async () => {
@@ -161,13 +163,14 @@ export default function PlaceDetail() {
             <div className="stamps">
               {v.stamps.map((s) => (
                 <figure key={s.id}>
-                  {s.media[0] ? (
-                    <a href={mediaUrl(s.media[0].id, 'medium')} target="_blank" rel="noreferrer">
+                  <button type="button" className="stamp-open" onClick={() => setOpenStamp(s)} aria-label={s.title ?? t(`stamp.${s.kind}`)}>
+                    {s.media[0] ? (
                       <img src={mediaUrl(s.media[0].id)} alt={s.title ?? t(`stamp.${s.kind}`)} loading="lazy" />
-                    </a>
-                  ) : (
-                    <span className="no-photo"><span>印</span></span>
-                  )}
+                    ) : (
+                      <span className="no-photo"><span>印</span></span>
+                    )}
+                    {s.inscription && <span className="read-badge" aria-hidden>読</span>}
+                  </button>
                   <figcaption>
                     {s.title || t(`stamp.${s.kind}`)}
                     {s.donation_yen != null && <span className="muted"> · ¥{s.donation_yen}</span>}
@@ -194,6 +197,16 @@ export default function PlaceDetail() {
             setSheet(null)
             setToast(t(queued ? 'offline.saved' : 'sheet.saved'))
             void load()
+          }}
+        />
+      )}
+      {openStamp && (
+        <StampSheet
+          stamp={openStamp}
+          onClose={() => setOpenStamp(null)}
+          onSaved={(updated) => {
+            setOpenStamp(updated)
+            setVisits((vs) => vs.map((v) => ({ ...v, stamps: v.stamps.map((x) => (x.id === updated.id ? updated : x)) })))
           }}
         />
       )}

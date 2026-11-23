@@ -96,6 +96,7 @@ class StampOut(Schema):
     kind: str
     medium: Optional[str]
     title: Optional[str]
+    inscription: Optional[str]
     event_name: Optional[str]
     donation_yen: Optional[int]
     goshuincho_id: Optional[uuid.UUID]
@@ -122,6 +123,7 @@ class StampIn(Schema):
     kind: StampKindLiteral = "goshuin"
     medium: Optional[MediumLiteral] = None
     title: Optional[str] = Field(None, max_length=200)
+    inscription: Optional[str] = Field(None, max_length=500)
     event_name: Optional[str] = Field(None, max_length=200)
     donation_yen: Optional[int] = Field(None, ge=0)
     goshuincho_id: Optional[uuid.UUID] = None
@@ -134,6 +136,7 @@ class StampPatch(Schema):
     kind: Optional[StampKindLiteral] = None
     medium: Optional[MediumLiteral] = None
     title: Optional[str] = Field(None, max_length=200)
+    inscription: Optional[str] = Field(None, max_length=500)
     event_name: Optional[str] = Field(None, max_length=200)
     donation_yen: Optional[int] = Field(None, ge=0)
     goshuincho_id: Optional[uuid.UUID] = None
@@ -287,6 +290,7 @@ def stamp_out(stamp: Stamp) -> dict:
         "kind": stamp.kind,
         "medium": stamp.medium,
         "title": stamp.title,
+        "inscription": stamp.inscription,
         "event_name": stamp.event_name,
         "donation_yen": stamp.donation_yen,
         "goshuincho_id": stamp.goshuincho_id,
@@ -399,7 +403,7 @@ def create_stamp(user, visit: Visit, data: dict) -> tuple[Stamp, bool]:
                 raise HttpError(409, "id_conflict")
             return existing, False
     check_goshuincho(user, data.get("goshuincho_id"))
-    for f in ("title", "event_name", "page_label", "notes"):
+    for f in ("title", "inscription", "event_name", "page_label", "notes"):
         data[f] = (data.get(f) or "").strip() or None
     stamp = Stamp.objects.create(
         id=stamp_id or uuid.uuid4(), visit=visit, user=user, place_id=visit.place_id, **data
@@ -540,7 +544,7 @@ def update_stamp(request, stamp_id: uuid.UUID, payload: StampPatch):
     if "kind" in data and data["kind"] is None:
         del data["kind"]
     for f, v in data.items():
-        if f in ("title", "event_name", "page_label", "notes"):
+        if f in ("title", "inscription", "event_name", "page_label", "notes"):
             v = (v or "").strip() or None
         setattr(stamp, f, v)
     with transaction.atomic():

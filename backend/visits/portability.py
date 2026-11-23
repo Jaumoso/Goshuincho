@@ -33,7 +33,7 @@ PLACE_FIELDS = (
     "address", "website", "goshuin_available", "goshuin_info", "osm_type", "osm_id",
 )
 VISIT_FIELDS = ("kind", "event_location", "visited_on", "visited_precision", "notes", "created_at")
-STAMP_FIELDS = ("kind", "medium", "title", "event_name", "donation_yen", "page_label", "notes", "created_at")
+STAMP_FIELDS = ("kind", "medium", "title", "inscription", "event_name", "donation_yen", "page_label", "notes", "created_at")
 MATCH_RADIUS_M = 300
 
 
