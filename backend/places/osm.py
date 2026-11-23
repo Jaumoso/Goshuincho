@@ -54,12 +54,29 @@ SUFFIXES = [
 LONG_VOWELS = [("ou", "ō"), ("oo", "ō"), ("uu", "ū")]
 WORD_SPLIT = re.compile(r"[\s・･()（）「」]+")
 
+# Selectores de variante (IVS): pykakasi falla con ellos y no cambian la lectura.
+VARIATION_SELECTORS = re.compile("[\ufe00-\ufe0f\U000e0100-\U000e01ef]")
+
 _kakasi = None
+
+
+def _convert(text: str) -> list[dict]:
+    try:
+        return _kakasi.convert(text)
+    except (IndexError, KeyError):
+        # Último recurso: carácter a carácter, omitiendo los que pykakasi no sepa leer.
+        items = []
+        for char in text:
+            try:
+                items += _kakasi.convert(char)
+            except (IndexError, KeyError):
+                pass
+        return items
 
 
 def _romaji_word(text: str) -> str:
     word = ""
-    for item in _kakasi.convert(text):
+    for item in _convert(text):
         segment = item["hepburn"].strip()
         for long, macron in LONG_VOWELS:
             segment = segment.replace(long, macron)
@@ -79,7 +96,7 @@ def romanize(text: str) -> str:
 
         _kakasi = pykakasi.kakasi()
     words = []
-    for part in WORD_SPLIT.split(text):
+    for part in WORD_SPLIT.split(VARIATION_SELECTORS.sub("", text)):
         if not part:
             continue
         for ja, ro, sep in SUFFIXES:

@@ -42,6 +42,8 @@ def test_romanize():
     assert romanize("八坂神社") == "Yasaka Jinja"
     assert romanize("太宰府天満宮") == "Dazaifu Tenmangū"
     assert romanize("延暦寺 根本中堂").startswith("Enryaku-ji ")
+    # Kanji con selector de variante (IVS): pykakasi fallaba y abortaba toda la importación.
+    assert romanize("葛\U000e0100城神社") == romanize("葛城神社")
 
 
 def test_place_fields_names():
