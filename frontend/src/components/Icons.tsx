@@ -1,4 +1,5 @@
 import type { PlaceKind } from '../api'
+import { KIND_PATHS, type IconPath } from './kindPaths'
 
 type Props = { size?: number; className?: string }
 
@@ -10,37 +11,20 @@ function Svg({ size = 24, className, children }: Props & { children: React.React
   )
 }
 
-export const Torii = (p: Props) => (
-  <Svg {...p}>
-    <path d="M1.5 3.6c4.2 1.3 16.8 1.3 21 0v2.7c-4.2 1-16.8 1-21 0z" />
-    <path d="M3.5 9.2h17v2h-17zM11.2 6.8h1.6v2.4h-1.6zM5.6 6.4h2.2V22H5.6zM16.2 6.4h2.2V22h-2.2z" />
-  </Svg>
-)
+function PathIcon({ paths, ...p }: Props & { paths: IconPath[] }) {
+  return (
+    <Svg {...p}>
+      {paths.map((x) => (
+        <path key={x.d} d={x.d} fillRule={x.evenodd ? 'evenodd' : undefined} />
+      ))}
+    </Svg>
+  )
+}
 
-export const Temple = (p: Props) => (
-  <Svg {...p}>
-    <path d="M11.3 1.5h1.4v3h-1.4z" />
-    <path d="M12 4c-3 3.3-6.3 5.4-10.5 6.2v1.6h21v-1.6C18.3 9.4 15 7.3 12 4z" />
-    <path fillRule="evenodd" d="M5 11.8h14V20H5zM10 14.2h4V20h-4z" />
-    <path d="M3 20h18v2H3z" />
-  </Svg>
-)
-
-export const Train = (p: Props) => (
-  <Svg {...p}>
-    <path
-      fillRule="evenodd"
-      d="M8 2.5h8a3 3 0 0 1 3 3v9.5a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V5.5a3 3 0 0 1 3-3zM7.5 6v4.8h9V6zM7.5 13.5V15h2v-1.5zM14.5 13.5V15h2v-1.5z"
-    />
-    <path d="M8.2 18.6h2.1L8 22H5.8zM13.7 18.6h2.1l2.4 3.4H16z" />
-  </Svg>
-)
-
-export const Pin = (p: Props) => (
-  <Svg {...p}>
-    <path fillRule="evenodd" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 4.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z" />
-  </Svg>
-)
+export const Torii = (p: Props) => <PathIcon paths={KIND_PATHS.shrine} {...p} />
+export const Temple = (p: Props) => <PathIcon paths={KIND_PATHS.temple} {...p} />
+export const Train = (p: Props) => <PathIcon paths={KIND_PATHS.station} {...p} />
+export const Pin = (p: Props) => <PathIcon paths={KIND_PATHS.site} {...p} />
 
 export const Lantern = (p: Props) => (
   <Svg {...p}>

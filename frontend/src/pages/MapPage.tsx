@@ -6,6 +6,8 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { Protocol } from 'pmtiles'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { KindIcon } from '../components/Icons'
+import { KIND_PATHS } from '../components/kindPaths'
 import { api, type PlaceKind, type PlaceNames } from '../api'
 import { useCategories } from '../data'
 import { localName, placeName, placeSubName } from '../format'
@@ -23,6 +25,9 @@ const JAPAN: LngLatBoundsLike = [[122.9, 24.0], [146.0, 45.6]]
 const TILES = '/tiles/japan.pmtiles'
 /** Desde este zoom se piden también los lugares no visitados de la zona visible. */
 const DETAIL_ZOOM = 9
+/** Desde este zoom los puntos muestran el icono de su tipo. */
+const KIND_ZOOM = 12
+const KINDS: PlaceKind[] = ['shrine', 'temple', 'station', 'site']
 
 // 和色: papel washi, agua añil y verdes de musgo en lugar de los grises por defecto.
 const WASHI: Partial<Flavor> = {
@@ -59,6 +64,19 @@ function mapStyle(dark: boolean, lang: string, hasTiles: boolean): StyleSpecific
         layers('protomaps', flavor, { lang }).filter((l) => l.id !== 'roads_shields')
       : [{ id: 'background', type: 'background', paint: { 'background-color': flavor.background } }],
   }
+}
+
+const ICON_PX = 64
+
+/** Icono del tipo de lugar, de color sólido, para usarlo como imagen del mapa. */
+function kindImage(kind: PlaceKind, color: string): ImageData {
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = ICON_PX
+  const ctx = canvas.getContext('2d')!
+  ctx.scale(ICON_PX / 24, ICON_PX / 24)
+  ctx.fillStyle = color
+  for (const { d, evenodd } of KIND_PATHS[kind]) ctx.fill(new Path2D(d), evenodd ? 'evenodd' : 'nonzero')
+  return ctx.getImageData(0, 0, ICON_PX, ICON_PX)
 }
 
 function pointCoords(feature: { geometry: unknown }): [number, number] {
@@ -165,9 +183,31 @@ export default function MapPage() {
         layout: { 'circle-sort-key': ['match', ['get', 'state'], 'visited', 2, 'wishlist', 1, 0] },
         paint: {
           'circle-color': stateColor as never,
-          'circle-radius': ['match', ['get', 'state'], 'unvisited', 6, 8.5],
+          // Al acercarse crecen para que quepa el icono del tipo.
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            11, ['match', ['get', 'state'], 'unvisited', 5, 7.5],
+            14, ['match', ['get', 'state'], 'unvisited', 10.5, 12.5],
+          ],
           'circle-stroke-width': 2.5,
           'circle-stroke-color': ring,
+        },
+      })
+      for (const k of KINDS) {
+        if (!map.hasImage(`kind-${k}`)) map.addImage(`kind-${k}`, kindImage(k, ring), { pixelRatio: ICON_PX / 16 })
+      }
+      map.addLayer({
+        id: 'point-icons',
+        type: 'symbol',
+        source: 'places',
+        minzoom: KIND_ZOOM,
+        filter: ['!', ['has', 'point_count']],
+        layout: {
+          'icon-image': ['concat', 'kind-', ['get', 'kind']],
+          'icon-size': ['interpolate', ['linear'], ['zoom'], KIND_ZOOM, 0.6, 14, ['match', ['get', 'state'], 'unvisited', 0.85, 1]],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'symbol-sort-key': ['match', ['get', 'state'], 'visited', 2, 'wishlist', 1, 0],
         },
       })
       map.addLayer({
@@ -180,7 +220,7 @@ export default function MapPage() {
           'text-field': ['coalesce', ['get', 'name_ja'], ['get', 'name_romaji'], ['get', 'name_en']],
           'text-font': ['Noto Sans Medium'],
           'text-size': 12,
-          'text-offset': [0, 1.1],
+          'text-offset': [0, 1.35],
           'text-anchor': 'top',
           'text-optional': true,
           // Los visitados y deseados ganan la colisión de etiquetas.
@@ -304,7 +344,7 @@ export default function MapPage() {
         <div className="filters">
           <select aria-label={t('places.all_kinds')} value={kind} onChange={(e) => update('kind', e.target.value)}>
             <option value="">{t('places.all_kinds')}</option>
-            {(['shrine', 'temple', 'station', 'site'] as const).map((k) => (
+            {KINDS.map((k) => (
               <option key={k} value={k}>{t(`kind.${k}`)}</option>
             ))}
           </select>
@@ -320,6 +360,13 @@ export default function MapPage() {
           <li data-state="wishlist">{t('map.state.wishlist')}</li>
           {zoom >= DETAIL_ZOOM && <li data-state="unvisited">{t('map.state.unvisited')}</li>}
         </ul>
+        {zoom >= KIND_ZOOM && (
+          <ul className="map-legend map-kinds">
+            {KINDS.filter((k) => k !== 'site').map((k) => (
+              <li key={k}><KindIcon kind={k} size={14} />{t(`kind.${k}`)}</li>
+            ))}
+          </ul>
+        )}
         {noTiles && <p className="map-note">{t('map.no_tiles')}</p>}
         {!noTiles && zoom > 0 && zoom < DETAIL_ZOOM && <p className="map-note">{t('map.zoom_hint')}</p>}
         {truncated && <p className="map-note">{t('map.truncated')}</p>}

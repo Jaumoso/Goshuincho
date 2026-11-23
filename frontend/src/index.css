@@ -401,6 +401,11 @@ body:has(.map-page) { padding-bottom: 0; }
 }
 .map-legend [data-state='visited']::before { background: var(--shu); }
 .map-legend [data-state='wishlist']::before { background: var(--kin); }
+.map-kinds li::before { display: none; }
+.map-kinds svg { color: var(--map-ai); }
+.map-legend [data-state='unvisited']::before { background: var(--map-ai); }
+.map-page { --map-ai: var(--ai); }
+@media (prefers-color-scheme: dark) { .map-page { --map-ai: #8fa6c9; } }
 .map-note {
   margin: 0; padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600;
   background: var(--sumi); color: #f5eedf; box-shadow: 0 4px 12px -6px rgb(0 0 0 / 0.5);
