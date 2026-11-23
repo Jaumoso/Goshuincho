@@ -1,0 +1,557 @@
+{
+ "regions": [
+  {
+   "id": 1,
+   "slug": "hokkaido",
+   "name_ja": "北海道",
+   "name_en": "Hokkaido",
+   "name_es": "Hokkaidō"
+  },
+  {
+   "id": 2,
+   "slug": "tohoku",
+   "name_ja": "東北",
+   "name_en": "Tohoku",
+   "name_es": "Tōhoku"
+  },
+  {
+   "id": 3,
+   "slug": "kanto",
+   "name_ja": "関東",
+   "name_en": "Kanto",
+   "name_es": "Kantō"
+  },
+  {
+   "id": 4,
+   "slug": "chubu",
+   "name_ja": "中部",
+   "name_en": "Chubu",
+   "name_es": "Chūbu"
+  },
+  {
+   "id": 5,
+   "slug": "kansai",
+   "name_ja": "関西",
+   "name_en": "Kansai",
+   "name_es": "Kansai"
+  },
+  {
+   "id": 6,
+   "slug": "chugoku",
+   "name_ja": "中国",
+   "name_en": "Chugoku",
+   "name_es": "Chūgoku"
+  },
+  {
+   "id": 7,
+   "slug": "shikoku",
+   "name_ja": "四国",
+   "name_en": "Shikoku",
+   "name_es": "Shikoku"
+  },
+  {
+   "id": 8,
+   "slug": "kyushu-okinawa",
+   "name_ja": "九州・沖縄",
+   "name_en": "Kyushu & Okinawa",
+   "name_es": "Kyūshū y Okinawa"
+  }
+ ],
+ "prefectures": [
+  {
+   "id": 1,
+   "iso_code": "JP-01",
+   "region_id": 1,
+   "name_ja": "北海道",
+   "name_romaji": "Hokkaidō",
+   "name_en": "Hokkaido",
+   "name_es": "Hokkaidō"
+  },
+  {
+   "id": 2,
+   "iso_code": "JP-02",
+   "region_id": 2,
+   "name_ja": "青森県",
+   "name_romaji": "Aomori",
+   "name_en": "Aomori",
+   "name_es": "Aomori"
+  },
+  {
+   "id": 3,
+   "iso_code": "JP-03",
+   "region_id": 2,
+   "name_ja": "岩手県",
+   "name_romaji": "Iwate",
+   "name_en": "Iwate",
+   "name_es": "Iwate"
+  },
+  {
+   "id": 4,
+   "iso_code": "JP-04",
+   "region_id": 2,
+   "name_ja": "宮城県",
+   "name_romaji": "Miyagi",
+   "name_en": "Miyagi",
+   "name_es": "Miyagi"
+  },
+  {
+   "id": 5,
+   "iso_code": "JP-05",
+   "region_id": 2,
+   "name_ja": "秋田県",
+   "name_romaji": "Akita",
+   "name_en": "Akita",
+   "name_es": "Akita"
+  },
+  {
+   "id": 6,
+   "iso_code": "JP-06",
+   "region_id": 2,
+   "name_ja": "山形県",
+   "name_romaji": "Yamagata",
+   "name_en": "Yamagata",
+   "name_es": "Yamagata"
+  },
+  {
+   "id": 7,
+   "iso_code": "JP-07",
+   "region_id": 2,
+   "name_ja": "福島県",
+   "name_romaji": "Fukushima",
+   "name_en": "Fukushima",
+   "name_es": "Fukushima"
+  },
+  {
+   "id": 8,
+   "iso_code": "JP-08",
+   "region_id": 3,
+   "name_ja": "茨城県",
+   "name_romaji": "Ibaraki",
+   "name_en": "Ibaraki",
+   "name_es": "Ibaraki"
+  },
+  {
+   "id": 9,
+   "iso_code": "JP-09",
+   "region_id": 3,
+   "name_ja": "栃木県",
+   "name_romaji": "Tochigi",
+   "name_en": "Tochigi",
+   "name_es": "Tochigi"
+  },
+  {
+   "id": 10,
+   "iso_code": "JP-10",
+   "region_id": 3,
+   "name_ja": "群馬県",
+   "name_romaji": "Gunma",
+   "name_en": "Gunma",
+   "name_es": "Gunma"
+  },
+  {
+   "id": 11,
+   "iso_code": "JP-11",
+   "region_id": 3,
+   "name_ja": "埼玉県",
+   "name_romaji": "Saitama",
+   "name_en": "Saitama",
+   "name_es": "Saitama"
+  },
+  {
+   "id": 12,
+   "iso_code": "JP-12",
+   "region_id": 3,
+   "name_ja": "千葉県",
+   "name_romaji": "Chiba",
+   "name_en": "Chiba",
+   "name_es": "Chiba"
+  },
+  {
+   "id": 13,
+   "iso_code": "JP-13",
+   "region_id": 3,
+   "name_ja": "東京都",
+   "name_romaji": "Tōkyō",
+   "name_en": "Tokyo",
+   "name_es": "Tokio"
+  },
+  {
+   "id": 14,
+   "iso_code": "JP-14",
+   "region_id": 3,
+   "name_ja": "神奈川県",
+   "name_romaji": "Kanagawa",
+   "name_en": "Kanagawa",
+   "name_es": "Kanagawa"
+  },
+  {
+   "id": 15,
+   "iso_code": "JP-15",
+   "region_id": 4,
+   "name_ja": "新潟県",
+   "name_romaji": "Niigata",
+   "name_en": "Niigata",
+   "name_es": "Niigata"
+  },
+  {
+   "id": 16,
+   "iso_code": "JP-16",
+   "region_id": 4,
+   "name_ja": "富山県",
+   "name_romaji": "Toyama",
+   "name_en": "Toyama",
+   "name_es": "Toyama"
+  },
+  {
+   "id": 17,
+   "iso_code": "JP-17",
+   "region_id": 4,
+   "name_ja": "石川県",
+   "name_romaji": "Ishikawa",
+   "name_en": "Ishikawa",
+   "name_es": "Ishikawa"
+  },
+  {
+   "id": 18,
+   "iso_code": "JP-18",
+   "region_id": 4,
+   "name_ja": "福井県",
+   "name_romaji": "Fukui",
+   "name_en": "Fukui",
+   "name_es": "Fukui"
+  },
+  {
+   "id": 19,
+   "iso_code": "JP-19",
+   "region_id": 4,
+   "name_ja": "山梨県",
+   "name_romaji": "Yamanashi",
+   "name_en": "Yamanashi",
+   "name_es": "Yamanashi"
+  },
+  {
+   "id": 20,
+   "iso_code": "JP-20",
+   "region_id": 4,
+   "name_ja": "長野県",
+   "name_romaji": "Nagano",
+   "name_en": "Nagano",
+   "name_es": "Nagano"
+  },
+  {
+   "id": 21,
+   "iso_code": "JP-21",
+   "region_id": 4,
+   "name_ja": "岐阜県",
+   "name_romaji": "Gifu",
+   "name_en": "Gifu",
+   "name_es": "Gifu"
+  },
+  {
+   "id": 22,
+   "iso_code": "JP-22",
+   "region_id": 4,
+   "name_ja": "静岡県",
+   "name_romaji": "Shizuoka",
+   "name_en": "Shizuoka",
+   "name_es": "Shizuoka"
+  },
+  {
+   "id": 23,
+   "iso_code": "JP-23",
+   "region_id": 4,
+   "name_ja": "愛知県",
+   "name_romaji": "Aichi",
+   "name_en": "Aichi",
+   "name_es": "Aichi"
+  },
+  {
+   "id": 24,
+   "iso_code": "JP-24",
+   "region_id": 5,
+   "name_ja": "三重県",
+   "name_romaji": "Mie",
+   "name_en": "Mie",
+   "name_es": "Mie"
+  },
+  {
+   "id": 25,
+   "iso_code": "JP-25",
+   "region_id": 5,
+   "name_ja": "滋賀県",
+   "name_romaji": "Shiga",
+   "name_en": "Shiga",
+   "name_es": "Shiga"
+  },
+  {
+   "id": 26,
+   "iso_code": "JP-26",
+   "region_id": 5,
+   "name_ja": "京都府",
+   "name_romaji": "Kyōto",
+   "name_en": "Kyoto",
+   "name_es": "Kioto"
+  },
+  {
+   "id": 27,
+   "iso_code": "JP-27",
+   "region_id": 5,
+   "name_ja": "大阪府",
+   "name_romaji": "Ōsaka",
+   "name_en": "Osaka",
+   "name_es": "Osaka"
+  },
+  {
+   "id": 28,
+   "iso_code": "JP-28",
+   "region_id": 5,
+   "name_ja": "兵庫県",
+   "name_romaji": "Hyōgo",
+   "name_en": "Hyogo",
+   "name_es": "Hyōgo"
+  },
+  {
+   "id": 29,
+   "iso_code": "JP-29",
+   "region_id": 5,
+   "name_ja": "奈良県",
+   "name_romaji": "Nara",
+   "name_en": "Nara",
+   "name_es": "Nara"
+  },
+  {
+   "id": 30,
+   "iso_code": "JP-30",
+   "region_id": 5,
+   "name_ja": "和歌山県",
+   "name_romaji": "Wakayama",
+   "name_en": "Wakayama",
+   "name_es": "Wakayama"
+  },
+  {
+   "id": 31,
+   "iso_code": "JP-31",
+   "region_id": 6,
+   "name_ja": "鳥取県",
+   "name_romaji": "Tottori",
+   "name_en": "Tottori",
+   "name_es": "Tottori"
+  },
+  {
+   "id": 32,
+   "iso_code": "JP-32",
+   "region_id": 6,
+   "name_ja": "島根県",
+   "name_romaji": "Shimane",
+   "name_en": "Shimane",
+   "name_es": "Shimane"
+  },
+  {
+   "id": 33,
+   "iso_code": "JP-33",
+   "region_id": 6,
+   "name_ja": "岡山県",
+   "name_romaji": "Okayama",
+   "name_en": "Okayama",
+   "name_es": "Okayama"
+  },
+  {
+   "id": 34,
+   "iso_code": "JP-34",
+   "region_id": 6,
+   "name_ja": "広島県",
+   "name_romaji": "Hiroshima",
+   "name_en": "Hiroshima",
+   "name_es": "Hiroshima"
+  },
+  {
+   "id": 35,
+   "iso_code": "JP-35",
+   "region_id": 6,
+   "name_ja": "山口県",
+   "name_romaji": "Yamaguchi",
+   "name_en": "Yamaguchi",
+   "name_es": "Yamaguchi"
+  },
+  {
+   "id": 36,
+   "iso_code": "JP-36",
+   "region_id": 7,
+   "name_ja": "徳島県",
+   "name_romaji": "Tokushima",
+   "name_en": "Tokushima",
+   "name_es": "Tokushima"
+  },
+  {
+   "id": 37,
+   "iso_code": "JP-37",
+   "region_id": 7,
+   "name_ja": "香川県",
+   "name_romaji": "Kagawa",
+   "name_en": "Kagawa",
+   "name_es": "Kagawa"
+  },
+  {
+   "id": 38,
+   "iso_code": "JP-38",
+   "region_id": 7,
+   "name_ja": "愛媛県",
+   "name_romaji": "Ehime",
+   "name_en": "Ehime",
+   "name_es": "Ehime"
+  },
+  {
+   "id": 39,
+   "iso_code": "JP-39",
+   "region_id": 7,
+   "name_ja": "高知県",
+   "name_romaji": "Kōchi",
+   "name_en": "Kochi",
+   "name_es": "Kōchi"
+  },
+  {
+   "id": 40,
+   "iso_code": "JP-40",
+   "region_id": 8,
+   "name_ja": "福岡県",
+   "name_romaji": "Fukuoka",
+   "name_en": "Fukuoka",
+   "name_es": "Fukuoka"
+  },
+  {
+   "id": 41,
+   "iso_code": "JP-41",
+   "region_id": 8,
+   "name_ja": "佐賀県",
+   "name_romaji": "Saga",
+   "name_en": "Saga",
+   "name_es": "Saga"
+  },
+  {
+   "id": 42,
+   "iso_code": "JP-42",
+   "region_id": 8,
+   "name_ja": "長崎県",
+   "name_romaji": "Nagasaki",
+   "name_en": "Nagasaki",
+   "name_es": "Nagasaki"
+  },
+  {
+   "id": 43,
+   "iso_code": "JP-43",
+   "region_id": 8,
+   "name_ja": "熊本県",
+   "name_romaji": "Kumamoto",
+   "name_en": "Kumamoto",
+   "name_es": "Kumamoto"
+  },
+  {
+   "id": 44,
+   "iso_code": "JP-44",
+   "region_id": 8,
+   "name_ja": "大分県",
+   "name_romaji": "Ōita",
+   "name_en": "Oita",
+   "name_es": "Ōita"
+  },
+  {
+   "id": 45,
+   "iso_code": "JP-45",
+   "region_id": 8,
+   "name_ja": "宮崎県",
+   "name_romaji": "Miyazaki",
+   "name_en": "Miyazaki",
+   "name_es": "Miyazaki"
+  },
+  {
+   "id": 46,
+   "iso_code": "JP-46",
+   "region_id": 8,
+   "name_ja": "鹿児島県",
+   "name_romaji": "Kagoshima",
+   "name_en": "Kagoshima",
+   "name_es": "Kagoshima"
+  },
+  {
+   "id": 47,
+   "iso_code": "JP-47",
+   "region_id": 8,
+   "name_ja": "沖縄県",
+   "name_romaji": "Okinawa",
+   "name_en": "Okinawa",
+   "name_es": "Okinawa"
+  }
+ ],
+ "areas": [
+  {
+   "slug": "kyoto-higashiyama",
+   "prefecture_id": 26,
+   "name_ja": "東山",
+   "name_en": "Higashiyama",
+   "name_es": "Higashiyama"
+  },
+  {
+   "slug": "kyoto-arashiyama",
+   "prefecture_id": 26,
+   "name_ja": "嵐山",
+   "name_en": "Arashiyama",
+   "name_es": "Arashiyama"
+  },
+  {
+   "slug": "kyoto-fushimi",
+   "prefecture_id": 26,
+   "name_ja": "伏見",
+   "name_en": "Fushimi",
+   "name_es": "Fushimi"
+  },
+  {
+   "slug": "tokyo-asakusa",
+   "prefecture_id": 13,
+   "name_ja": "浅草",
+   "name_en": "Asakusa",
+   "name_es": "Asakusa"
+  },
+  {
+   "slug": "tokyo-shibuya-harajuku",
+   "prefecture_id": 13,
+   "name_ja": "渋谷・原宿",
+   "name_en": "Shibuya & Harajuku",
+   "name_es": "Shibuya y Harajuku"
+  },
+  {
+   "slug": "kamakura",
+   "prefecture_id": 14,
+   "name_ja": "鎌倉",
+   "name_en": "Kamakura",
+   "name_es": "Kamakura"
+  },
+  {
+   "slug": "hakone",
+   "prefecture_id": 14,
+   "name_ja": "箱根",
+   "name_en": "Hakone",
+   "name_es": "Hakone"
+  },
+  {
+   "slug": "nikko",
+   "prefecture_id": 9,
+   "name_ja": "日光",
+   "name_en": "Nikko",
+   "name_es": "Nikkō"
+  },
+  {
+   "slug": "nara-park",
+   "prefecture_id": 29,
+   "name_ja": "奈良公園",
+   "name_en": "Nara Park",
+   "name_es": "Parque de Nara"
+  },
+  {
+   "slug": "koyasan",
+   "prefecture_id": 30,
+   "name_ja": "高野山",
+   "name_en": "Mount Koya",
+   "name_es": "Monte Kōya"
+  }
+ ]
+}

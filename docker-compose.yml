@@ -1,0 +1,58 @@
+x-goshuincho: &goshuincho
+  image: ghcr.io/${GOSHUINCHO_OWNER:-goshuincho}/goshuincho:${GOSHUINCHO_VERSION:-latest}
+  build: .
+  env_file: .env
+  environment:
+    DB_HOST: db
+  volumes:
+    - media:/data/media
+    - ./tiles:/data/tiles:ro
+  restart: unless-stopped
+
+services:
+  migrate:
+    <<: *goshuincho
+    command: sh -c "python manage.py migrate --noinput && python manage.py seed --if-empty"
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    <<: *goshuincho
+    command: gunicorn goshuincho.wsgi --bind 0.0.0.0:8000 --workers 3 --access-logfile -
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-8000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      start_period: 20s
+      retries: 3
+
+  worker:
+    <<: *goshuincho
+    command: python manage.py procrastinate worker
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  db:
+    image: ${POSTGIS_IMAGE:-postgis/postgis:16-3.4}
+    environment:
+      POSTGRES_DB: goshuin
+      POSTGRES_USER: goshuin
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD es obligatoria}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U goshuin -d goshuin"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  media:
+  pgdata:

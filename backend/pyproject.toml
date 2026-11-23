@@ -1,0 +1,34 @@
+[project]
+name = "goshuincho"
+version = "0.1.0"
+description = "Goshuinchō: registro selfhosted de goshuin y visitas en Japón"
+authors = [
+    { name = "Jaume Civera", email = "jaume.civera@lumibit.io" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "argon2-cffi>=25.1.0",
+    "django>=5.2",
+    "django-axes>=9.0.0",
+    "django-ninja>=1.8.0",
+    "gunicorn>=27.0.1",
+    "pillow>=13.0.0",
+    "pillow-heif>=1.8.1",
+    "procrastinate>=3.12.0",
+    "psycopg[binary]>=3.3.9",
+    "whitenoise>=6.12.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "pytest-django>=4.14.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "goshuincho.settings"
+python_files = ["tests.py", "test_*.py"]
+filterwarnings = ["ignore:No directory at:UserWarning"]
