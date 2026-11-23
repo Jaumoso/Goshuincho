@@ -6,6 +6,8 @@ from ninja.security import django_auth
 from accounts.api import router as auth_router
 from accounts.api import me_router
 from geo.api import router as geo_router
+from places.api import router as places_router
+from visits.api import router as visits_router
 
 api = NinjaAPI(
     title="Goshuinchō API",
@@ -33,3 +35,5 @@ def health(request):
 api.add_router("/auth", auth_router)
 api.add_router("/me", me_router)
 api.add_router("/", geo_router)
+api.add_router("/", places_router)
+api.add_router("/", visits_router)

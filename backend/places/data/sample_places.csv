@@ -1,0 +1,37 @@
+kind,name_ja,name_romaji,name_en,prefecture,lat,lon,categories
+temple,清水寺,Kiyomizu-dera,,JP-26,34.9949,135.7850,saigoku-kannon:16;kannon;momiji
+shrine,伏見稲荷大社,Fushimi Inari Taisha,,JP-26,34.9671,135.7727,inari
+temple,鹿苑寺 (金閣寺),Kinkaku-ji,Golden Pavilion,JP-26,35.0394,135.7292,
+temple,慈照寺 (銀閣寺),Ginkaku-ji,Silver Pavilion,JP-26,35.0270,135.7982,
+shrine,八坂神社,Yasaka Jinja,,JP-26,35.0037,135.7785,
+temple,東寺,Tō-ji,,JP-26,34.9806,135.7477,
+temple,蓮華王院 (三十三間堂),Sanjūsangen-dō,,JP-26,34.9879,135.7718,kannon
+shrine,北野天満宮,Kitano Tenman-gū,,JP-26,35.0312,135.7351,tenjin
+temple,天龍寺,Tenryū-ji,,JP-26,35.0158,135.6737,momiji
+shrine,賀茂御祖神社 (下鴨神社),Shimogamo Jinja,,JP-26,35.0389,135.7728,
+temple,東大寺,Tōdai-ji,,JP-29,34.6890,135.8398,
+shrine,春日大社,Kasuga Taisha,,JP-29,34.6812,135.8484,
+temple,法隆寺,Hōryū-ji,,JP-29,34.6142,135.7347,
+temple,浅草寺,Sensō-ji,,JP-13,35.7148,139.7967,bando-kannon:13;kannon
+shrine,明治神宮,Meiji Jingū,Meiji Shrine,JP-13,35.6764,139.6993,
+shrine,神田明神,Kanda Myōjin,,JP-13,35.7020,139.7679,
+shrine,根津神社,Nezu Jinja,,JP-13,35.7201,139.7609,
+station,東京駅,Tōkyō-eki,Tokyo Station,JP-13,35.6812,139.7671,station-stamps
+shrine,鶴岡八幡宮,Tsurugaoka Hachiman-gū,,JP-14,35.3260,139.5565,hachiman
+temple,高徳院 (鎌倉大仏),Kōtoku-in,Great Buddha of Kamakura,JP-14,35.3168,139.5357,
+temple,長谷寺,Hase-dera,,JP-14,35.3124,139.5332,bando-kannon:4;kannon
+shrine,箱根神社,Hakone Jinja,,JP-14,35.2048,139.0254,
+shrine,皇大神宮 (伊勢神宮 内宮),Ise Jingū Naikū,,JP-24,34.4550,136.7256,amaterasu
+shrine,厳島神社,Itsukushima Jinja,,JP-34,34.2959,132.3199,
+shrine,出雲大社,Izumo Taisha,,JP-32,35.4020,132.6855,
+shrine,日光東照宮,Nikkō Tōshō-gū,,JP-09,36.7580,139.5988,
+temple,善光寺,Zenkō-ji,,JP-20,36.6614,138.1875,
+temple,霊山寺,Ryōzen-ji,,JP-36,34.1595,134.5030,shikoku-henro:1
+shrine,太宰府天満宮,Dazaifu Tenman-gū,,JP-40,33.5215,130.5349,tenjin
+site,姫路城,Himeji-jō,Himeji Castle,JP-28,34.8394,134.6939,castles
+temple,中尊寺,Chūson-ji,,JP-03,39.0013,141.0997,
+shrine,北海道神宮,Hokkaidō Jingū,,JP-01,43.0543,141.3079,
+temple,延暦寺,Enryaku-ji,,JP-25,35.0705,135.8411,
+temple,金剛峯寺,Kongōbu-ji,,JP-30,34.2130,135.5845,
+shrine,熊野那智大社,Kumano Nachi Taisha,,JP-30,33.6688,135.8899,
+temple,青岸渡寺,Seiganto-ji,,JP-30,33.6686,135.8892,saigoku-kannon:1;kannon

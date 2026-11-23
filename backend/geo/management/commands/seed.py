@@ -8,12 +8,13 @@ from django.db import transaction
 
 from accounts.models import User
 from geo.models import Area, Prefecture, Region
+from places.models import Category
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 
 
 class Command(BaseCommand):
-    help = "Carga regiones, prefecturas (con contornos de Natural Earth) y zonas, y crea el primer administrador."
+    help = "Carga regiones, prefecturas (con contornos de Natural Earth), zonas y categorías, y crea el primer administrador."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -27,6 +28,10 @@ class Command(BaseCommand):
             self.stdout.write("Datos de referencia ya cargados; se omiten.")
         else:
             self.load_reference()
+        if if_empty and Category.objects.exists():
+            self.stdout.write("Categorías ya cargadas; se omiten.")
+        else:
+            self.load_categories()
         self.ensure_admin()
 
     @transaction.atomic
@@ -52,6 +57,14 @@ class Command(BaseCommand):
                 f"({len(boundaries)} con contorno) y {len(data['areas'])} zonas."
             )
         )
+
+    @transaction.atomic
+    def load_categories(self):
+        path = Path(__file__).resolve().parents[3] / "places" / "data" / "categories.json"
+        rows = json.loads(path.read_text(encoding="utf-8"))
+        for row in rows:
+            Category.objects.update_or_create(slug=row["slug"], defaults=row)
+        self.stdout.write(self.style.SUCCESS(f"Cargadas {len(rows)} categorías."))
 
     def load_boundaries(self):
         collection = json.loads((DATA_DIR / "prefectures.geojson").read_text(encoding="utf-8"))

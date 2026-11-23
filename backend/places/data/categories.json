@@ -1,0 +1,18 @@
+[
+  {"slug": "shikoku-henro", "type": "pilgrimage", "name_ja": "四国八十八箇所", "name_en": "Shikoku Pilgrimage", "name_es": "Shikoku Henro", "total_items": 88},
+  {"slug": "saigoku-kannon", "type": "pilgrimage", "name_ja": "西国三十三所", "name_en": "Saigoku Kannon Pilgrimage", "name_es": "Saigoku Kannon", "total_items": 33},
+  {"slug": "bando-kannon", "type": "pilgrimage", "name_ja": "坂東三十三観音", "name_en": "Bandō Kannon Pilgrimage", "name_es": "Bandō Kannon", "total_items": 33},
+  {"slug": "chichibu-kannon", "type": "pilgrimage", "name_ja": "秩父三十四箇所", "name_en": "Chichibu Kannon Pilgrimage", "name_es": "Chichibu Kannon", "total_items": 34},
+  {"slug": "shichifukujin", "type": "theme", "name_ja": "七福神", "name_en": "Seven Lucky Gods", "name_es": "Shichifukujin (siete dioses de la fortuna)"},
+  {"slug": "inari", "type": "theme", "name_ja": "稲荷", "name_en": "Inari shrines", "name_es": "Santuarios Inari"},
+  {"slug": "hachiman", "type": "theme", "name_ja": "八幡", "name_en": "Hachiman shrines", "name_es": "Santuarios Hachiman"},
+  {"slug": "momiji", "type": "theme", "name_ja": "紅葉の名所", "name_en": "Autumn leaves gardens", "name_es": "Jardines de momiji"},
+  {"slug": "syncretic", "type": "theme", "name_ja": "神仏習合", "name_en": "Syncretic (shrine-temple)", "name_es": "Sincrético (santuario-templo)"},
+  {"slug": "kannon", "type": "deity", "name_ja": "観音", "name_en": "Kannon", "name_es": "Kannon"},
+  {"slug": "jizo", "type": "deity", "name_ja": "地蔵", "name_en": "Jizō", "name_es": "Jizō"},
+  {"slug": "amaterasu", "type": "deity", "name_ja": "天照大御神", "name_en": "Amaterasu", "name_es": "Amaterasu"},
+  {"slug": "tenjin", "type": "deity", "name_ja": "天神", "name_en": "Tenjin", "name_es": "Tenjin"},
+  {"slug": "castles", "type": "collection", "name_ja": "城", "name_en": "Castles", "name_es": "Castillos"},
+  {"slug": "michi-no-eki", "type": "collection", "name_ja": "道の駅", "name_en": "Michi-no-eki", "name_es": "Michi-no-eki"},
+  {"slug": "station-stamps", "type": "collection", "name_ja": "駅スタンプ", "name_en": "Station stamps", "name_es": "Estaciones con sello"}
+]
