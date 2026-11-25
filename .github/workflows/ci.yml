@@ -12,7 +12,7 @@ jobs:
   backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run backend tests
         run: docker compose -f docker-compose.test.yml run --rm --build tests pytest -q -p no:logging
       - name: Check for missing migrations
@@ -27,7 +27,7 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
